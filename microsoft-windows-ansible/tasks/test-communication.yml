@@ -5,7 +5,7 @@
 #  - {{ targets }}
 
 - name: Windows Maintenance
-  hosts: {{ targets }}
+  hosts: all
   tasks:
 
     - name: Win Ping Test ("ping" winrm service)
