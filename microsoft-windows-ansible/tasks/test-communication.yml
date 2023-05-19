@@ -4,13 +4,12 @@
 # Requires Variables:
 #  - {{ targets }}
 
+- name: Windows Maintenance
+  hosts: {{ targets }}
+  tasks:
 
-  - name: Windows Maintenance
-    hosts: {{ targets }}
-    tasks:
-
-      - name: Win Ping Test ("ping" winrm service)
-        win_ping:
+    - name: Win Ping Test ("ping" winrm service)
+      win_ping:
 
 
 
