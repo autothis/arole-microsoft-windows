@@ -3,6 +3,12 @@
 
 - name: Windows Maintenance
   hosts: all
+  vars:
+    ansible_user: {{ winrmcreds.username }}
+    ansible_password: {{ winrmcreds.password }}
+    ansible_port: 5986
+    ansible_connection: winrm
+    ansible_winrm_server_cert_validation: ignore
   tasks:
     - name: Confirm Ansible can communicate with the hosts to be patched.
       include_tasks: microsoft-windows-ansible/tasks/test-communication.yml
