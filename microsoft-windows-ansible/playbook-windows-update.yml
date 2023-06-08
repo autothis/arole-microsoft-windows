@@ -4,8 +4,8 @@
 - name: Windows Maintenance
   hosts: all
   vars:
-    ansible_user: "{{ winrmcreds.username }}"
-    ansible_password: "{{ winrmcreds.password }}"
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
     ansible_port: 5986
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
