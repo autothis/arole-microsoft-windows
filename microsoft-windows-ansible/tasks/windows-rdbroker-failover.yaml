@@ -25,5 +25,5 @@
     register: windows_rdbroker_active
 
 - name: debug
-    debug:
-      msg: "{{ windows_update_result }}"
+  debug:
+    msg: "{{ windows_rdbroker_active }}"
