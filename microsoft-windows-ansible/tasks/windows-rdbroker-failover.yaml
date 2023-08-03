@@ -30,13 +30,14 @@
 - name: If current RD Broker Server is active, failover
   ansible.windows.win_shell: |
     Function Get-AvailableBroker {
-	    $Brokers = (Get-RDConnectionBrokerHighAvailability).ConnectionBroker
-	    $AvailableBrokers = @()
-	    foreach ($Broker in ($Brokers | where {$_ -ne $CurrentFQDN})) {
-		    $AvailableBrokers += $Broker
-    		}
-    	Write-Output $AvailableBrokers[0]
-    	}
+			$CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
+      $Brokers = (Get-RDConnectionBrokerHighAvailability).ConnectionBroker
+      $AvailableBrokers = @()
+      foreach ($Broker in ($Brokers | where {$_ -ne $CurrentFQDN})) {
+        $AvailableBrokers += $Broker
+        }
+      Write-Output $AvailableBrokers[0]
+      }
 
     Set-RDActiveManagementServer -ManagementServer (Get-AvailableBroker)
   when: windows_rdbroker_active.stdout == "True"
