@@ -1,4 +1,3 @@
-
 ---
 # This task will patch a Windows device as many times as is required to install all patches listed in the variabe "k>
 #
