@@ -1,0 +1,29 @@
+---
+# This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
+#
+# Required Variable:
+#  - {{ kbs_to_install }} : List of KBs that you have approved for installation
+#  - {{ wsus }} : This can be one of three options:
+#      "default" - this lets the end point decide which update source to use
+#      "managed_server" - this lets you select wsus as the update source to use
+#      "windows_update" - this lets you select Windows public servers as the update source
+
+- name: Check to see if Current RD Broker Server is active
+    win_powershell:
+      script: |
+        Function Get-AmIActive {
+          $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
+        	$ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
+        	if ($ActiveBroker -eq $CurrentFQDN) {
+        		Write-Output $True
+        		} else {
+        		Write-Output $False
+        		}
+        	}
+        
+        Get-AmIActive
+    register: windows_rdbroker_active
+
+- name: debug
+    debug:
+      msg: "{{ windows_update_result }}"

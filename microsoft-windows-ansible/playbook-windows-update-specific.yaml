@@ -10,5 +10,5 @@
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
   tasks:
-    - name: Confirm Ansible can communicate with the hosts to be patched.
-      include_tasks: tasks/test-communication.yml
+    - name: Install all available windows update
+      include_tasks: tasks/windows-update-specific.yaml
