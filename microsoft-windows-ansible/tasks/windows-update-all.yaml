@@ -1,9 +1,7 @@
-
 ---
-# This task will patch a Windows device as many times as is required to install all patches listed in the variabe "k>
+# This task will patch a Windows device as many times as is required to install all available updates"
 #
 # Required Variable:
-#  - {{ kbs_to_install }} : List of KBs that you have approved for installation
 #  - {{ wsus }} : This can be one of three options:
 #      "default" - this lets the end point decide which update source to use
 #      "managed_server" - this lets you select wsus as the update source to use
@@ -12,8 +10,6 @@
 - name: Install Windows updates
     win_updates:
       category_names: '*'
-      accept_list: "{{ kbs_to_install }}"
-      state: installed
       server_selection: "{{ wsus }}"
       reboot: yes
       reboot_timeout: 1200

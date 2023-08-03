@@ -1,0 +1,51 @@
+---
+# This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
+
+- name: Check to see if Current RD Broker Server is active
+  ansible.windows.win_shell: |
+    Function Get-AmIActive {
+      $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
+    	$ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
+    	if ($ActiveBroker -eq $CurrentFQDN) {
+    		Write-Output $True
+    		} else {
+    		Write-Output $False
+    		}
+    	}
+    
+    Get-AmIActive
+  register: windows_rdbroker_active
+
+- name: If current RD Broker Server is active, failover
+  ansible.windows.win_shell: |
+    Function Get-AvailableBroker {
+      $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
+      $Brokers = (Get-RDConnectionBrokerHighAvailability).ConnectionBroker
+      $AvailableBrokers = @()
+      foreach ($Broker in ($Brokers | where {$_ -ne $CurrentFQDN})) {
+        $AvailableBrokers += $Broker
+        }
+      Write-Output $AvailableBrokers[0]
+      }
+    
+    Set-RDActiveManagementServer -ManagementServer (Get-AvailableBroker)
+  when: windows_rdbroker_active.stdout | trim == "True"
+
+- name: Check to see if active RD Broker Server has changed
+  ansible.windows.win_shell: |
+    Function Get-AmIActive {
+      $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
+    	$ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
+    	if ($ActiveBroker -eq $CurrentFQDN) {
+    	  Write-Output $True
+    	  } else {
+    	  Write-Output $False
+    	  }
+    	}
+    
+    Get-AmIActive
+  register: windows_rdbroker_stillactive
+  when: windows_rdbroker_active.stdout | trim == "True"
+  until: windows_rdbroker_stillactive.stdout | trim == "False"
+  retries: 10
+  delay: 30
