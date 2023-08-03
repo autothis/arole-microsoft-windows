@@ -41,10 +41,10 @@
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
     	$ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
     	if ($ActiveBroker -eq $CurrentFQDN) {
-    		Write-Output $True
-    		} else {
-    		Write-Output $False
-    		}
+    	  Write-Output $True
+    	  } else {
+    	  Write-Output $False
+    	  }
     	}
     
     Get-AmIActive
