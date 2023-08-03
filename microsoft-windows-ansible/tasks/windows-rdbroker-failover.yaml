@@ -13,12 +13,18 @@
     		}
     	}
     
-    Get-AmIActive
+    Get-AmIActive | convertto-json
   register: windows_rdbroker_active
 
 - name: debug
   debug:
     msg: "{{ windows_rdbroker_active.stdout }}"
+
+- set_fact:
+    services: "{{ windows_rdbroker_active.stdout | from_json }}"
+
+- debug:
+    var: services
 
 - name: If current RD Broker Server is active, failover
   ansible.windows.win_shell: |
@@ -47,7 +53,7 @@
     	  }
     	}
     
-    Get-AmIActive
+    Get-AmIActive | convertto-json
   register: windows_rdbroker_stillactive
   when: windows_rdbroker_active.stdout == "True"
   until: windows_rdbroker_stillactive.stdout == "False"
