@@ -1,12 +1,5 @@
 ---
 # This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
-#
-# Required Variable:
-#  - {{ kbs_to_install }} : List of KBs that you have approved for installation
-#  - {{ wsus }} : This can be one of three options:
-#      "default" - this lets the end point decide which update source to use
-#      "managed_server" - this lets you select wsus as the update source to use
-#      "windows_update" - this lets you select Windows public servers as the update source
 
 - name: Check to see if Current RD Broker Server is active
   ansible.windows.win_shell: |
@@ -19,8 +12,8 @@
     		Write-Output $False
     		}
     	}
-      
-      Get-AmIActive
+    
+    Get-AmIActive
   register: windows_rdbroker_active
 
 - name: debug
@@ -38,7 +31,7 @@
         }
       Write-Output $AvailableBrokers[0]
       }
-
+    
     Set-RDActiveManagementServer -ManagementServer (Get-AvailableBroker)
   when: windows_rdbroker_active.stdout == "True"
 
@@ -53,8 +46,8 @@
     		Write-Output $False
     		}
     	}
-      
-      Get-AmIActive
+    
+    Get-AmIActive
   register: windows_rdbroker_stillactive
   when: windows_rdbroker_active.stdout == "True"
   until: windows_rdbroker_stillactive.stdout == "False"
