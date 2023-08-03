@@ -9,6 +9,8 @@
     ansible_port: 5986
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
+  become: yes
+  become_method: runas
   tasks:
     - name: If required Failover RD Broker Management Server
       include_tasks: tasks/windows-rdbroker-failover.yaml
