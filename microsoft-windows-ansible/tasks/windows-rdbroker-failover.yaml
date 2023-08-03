@@ -22,7 +22,7 @@
       	}
       
       Get-AmIActive
-    register: windows_rdbroker_active
+  register: windows_rdbroker_active
 
 - name: debug
   debug:
