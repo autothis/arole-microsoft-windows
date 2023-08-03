@@ -10,5 +10,5 @@
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
   tasks:
-    - name: Install all available windows update
+    - name: If required Failover RD Broker Management Server
       include_tasks: tasks/windows-rdbroker-failover.yaml

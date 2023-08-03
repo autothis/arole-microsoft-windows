@@ -9,7 +9,7 @@
 #      "windows_update" - this lets you select Windows public servers as the update source
 
 - name: Check to see if Current RD Broker Server is active
-  win_powershell:
+  ansible.windows.win_powershell:
     script: |
       Function Get-AmIActive {
         $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
