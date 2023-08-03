@@ -16,19 +16,6 @@
     Get-AmIActive
   register: windows_rdbroker_active
 
-- name: debug
-  debug:
-    msg: "{{ windows_rdbroker_active.stdout }}"
-
-- set_fact:
-    windows_rdbroker_active: "{{ windows_rdbroker_active.stdout | trim }}"
-
-#- set_fact:
-#    windows_rdbroker_active: "{{ windows_rdbroker_active.stdout | from_json }}"
-
-- debug:
-    var: windows_rdbroker_active
-
 - name: If current RD Broker Server is active, failover
   ansible.windows.win_shell: |
     Function Get-AvailableBroker {
@@ -62,17 +49,3 @@
   until: windows_rdbroker_stillactive.stdout | trim == "False"
   retries: 10
   delay: 30
-  
-- name: debug
-  debug:
-    msg: "{{ windows_rdbroker_stillactive.stdout }}"
-
-- name: debug
-  debug:
-    msg: "{{ windows_rdbroker_stillactive.stdout | trim }}"
-
-- set_fact:
-    windows_rdbroker_stillactive: "{{ windows_rdbroker_stillactive.stdout | trim }}"
-
-- debug:
-    var: windows_rdbroker_stillactive
