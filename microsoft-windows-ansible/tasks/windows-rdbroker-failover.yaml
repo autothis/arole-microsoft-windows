@@ -21,7 +21,6 @@
     	}
       
       Get-AmIActive
-  elevated: yes
   register: windows_rdbroker_active
 
 - name: debug
