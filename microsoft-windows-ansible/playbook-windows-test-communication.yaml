@@ -3,6 +3,7 @@
 
 - name: Windows Maintenance
   hosts: all
+  serial: 1
   vars:
     ansible_user: "{{ winrm_username }}"
     ansible_password: "{{ winrm_password }}"
