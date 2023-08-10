@@ -8,24 +8,24 @@
 #      "windows_update" - this lets you select Windows public servers as the update source
 
 - name: Install Windows updates
-    win_updates:
-      category_names: '*'
-      server_selection: "{{ wsus }}"
-      reboot: yes
-      reboot_timeout: 1200
-      log_path: c:\programdata\ansible_patchlog.log
-    register: windows_update_result
-    until: windows_update_result.changed == false
-    retries: 5
+  ansible.windows.win_updates:
+    category_names: '*'
+    server_selection: "{{ wsus }}"
+    reboot: yes
+    reboot_timeout: 1200
+    log_path: c:\programdata\ansible_patchlog.log
+  register: windows_update_result
+  until: windows_update_result.changed == false
+  retries: 5
 
 - name: Wait for server to come back online
-    wait_for_connection:
-      delay: 0
-      connect_timeout: 5
-      sleep: 60
-      timeout: 1200
-    when: windows_update_result.reboot_required
+  ansible.builtin.wait_for_connection:
+    delay: 0
+    connect_timeout: 5
+    sleep: 60
+    timeout: 1200
+  when: windows_update_result.reboot_required
 
 - name: debug
-    debug:
-      msg: "{{ windows_update_result }}"
+  ansible.builtin.debug:
+    msg: "{{ windows_update_result }}"
