@@ -1,7 +1,7 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+This is primarily an Ansible Role for managing Microsoft resources.
 
 Requirements
 ------------

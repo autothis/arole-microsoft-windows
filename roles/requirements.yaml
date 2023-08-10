@@ -1,0 +1,3 @@
+# LC_Active_Directory
+- src: git+https://github.com/autothis/vmware.git
+  name: arole_vmware

@@ -3,7 +3,3 @@
 
 - name: Win Ping Test ("ping" winrm service)
   win_ping:
-
-- name: Delay to test sequential AWX processing
-  pause:
-    seconds: 30
