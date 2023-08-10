@@ -1,0 +1,29 @@
+---
+- name: Microsoft RD Broker Failover (If Required)
+  hosts: all
+  serial: 1
+  vars:
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
+    ansible_port: 5986
+    ansible_connection: winrm
+    ansible_winrm_server_cert_validation: ignore
+    wsus: default
+  become: yes
+  become_method: runas
+  become_user: "{{ ansible_user }}"
+  tasks:
+
+    - name: Confirm Ansible can communicate with the hosts to be patched
+      include_tasks: tasks/test-communication.yaml
+
+    - name: Install all available windows update
+      include_tasks: tasks/windows-update-all.yaml
+    
+    - name: If required update VMTools
+      include_role:
+        name: LC_Windows_Server_VM
+        tasks_from: vmware-update-tools
+
+    - name: Confirm Ansible can communicate with the patched hosts
+      include_tasks: tasks/test-communication.yaml
