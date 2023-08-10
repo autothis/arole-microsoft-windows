@@ -23,10 +23,13 @@
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
     
-    - name: If required update VMTools
-      include_role:
-        name: LC_Windows_Server_VM
-        tasks_from: vmware-update-tools
+#    - name: If required update VMTools
+#      include_role:
+#        name: LC_Windows_Server_VM
+#        tasks_from: vmware-update-tools
+    
+    - name:
+      ansible.builtin.import_playbook: playbook-vmware-update-tools.yaml
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
