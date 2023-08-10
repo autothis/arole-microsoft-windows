@@ -22,7 +22,7 @@
     
     - name: If required update VMTools
       include_role:
-        name: LC_Windows_Server_VM
+        name: arole_vmware
         tasks_from: vmware-update-tools
 
     - name: Confirm Ansible can communicate with the patched hosts
