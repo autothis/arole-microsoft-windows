@@ -1,6 +1,6 @@
 ---
 - name: Microsoft RD License Server Patching (HA)
-  hosts: all
+  hosts: all:!localhost
   serial: 1
   vars:
     ansible_user: "{{ winrm_username }}"
