@@ -2,23 +2,31 @@
 - name: Microsoft RD License Server Patching (HA)
   hosts: all
   serial: 1
-  vars:
-    ansible_user: "{{ winrm_username }}"
-    ansible_password: "{{ winrm_password }}"
-    ansible_port: "{{ ansible_port }}"
-    ansible_connection: "{{ ansible_connection }}"
-    ansible_winrm_server_cert_validation: ignore
-    ansible_winrm_operation_timeout_sec: 300
-    ansible_winrm_read_timeout_sec: 310
-    wsus: default
   tasks:
 
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
       vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ ansible_port }}"
+        ansible_connection: "{{ ansible_connection }}"
+        ansible_winrm_server_cert_validation: ignore
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 310
+        wsus: default
 
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ ansible_port }}"
+        ansible_connection: "{{ ansible_connection }}"
+        ansible_winrm_server_cert_validation: ignore
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 310
+        wsus: default
 
     - name: If required update VMTools
       vars:
@@ -43,3 +51,12 @@
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ ansible_port }}"
+        ansible_connection: "{{ ansible_connection }}"
+        ansible_winrm_server_cert_validation: ignore
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 310
+        wsus: default
