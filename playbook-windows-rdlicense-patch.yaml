@@ -17,6 +17,10 @@
 
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
+        apply:
+          become: yes
+          become_method: runas
+          become_user: "{{ ansible_user }}"
       vars:
         ansible_user: "{{ winrm_username }}"
         ansible_password: "{{ winrm_password }}"
@@ -26,10 +30,6 @@
         ansible_winrm_operation_timeout_sec: 300
         ansible_winrm_read_timeout_sec: 310
         wsus: default
-      apply:
-        become: yes
-        become_method: runas
-        become_user: "{{ ansible_user }}"
 
     - name: If required update VMTools
       include_role:
