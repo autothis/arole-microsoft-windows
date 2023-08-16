@@ -2,30 +2,33 @@
 - name: Microsoft RD License Server Patching (HA)
   hosts: all
   serial: 1
-  vars:
-    ansible_user: "{{ winrm_username }}"
-    ansible_password: "{{ winrm_password }}"
-    ansible_port: "{{ ansible_port }}"
-    ansible_connection: "{{ ansible_connection }}"
-    ansible_winrm_server_cert_validation: ignore
-    ansible_winrm_operation_timeout_sec: 300
-    ansible_winrm_read_timeout_sec: 310
-    wsus: default
-    hostname: "{{ vm_vcenter }}"
-    datacenter: "{{ vm_datacenter }}"
-    username: "{{ vm_vcenter_username }}"
-    password: "{{ vm_vcenter_password }}"
-    name: "{{ vm_name }}"
-  become: yes
-  become_method: runas
-  become_user: "{{ ansible_user }}"
   tasks:
 
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ ansible_port }}"
+        ansible_connection: "{{ ansible_connection }}"
+        ansible_winrm_server_cert_validation: ignore
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 310
 
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ ansible_port }}"
+        ansible_connection: "{{ ansible_connection }}"
+        ansible_winrm_server_cert_validation: ignore
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 310
+        wsus: default
+        become: yes
+      become_method: runas
+      become_user: "{{ ansible_user }}"
 
     - name: If required update VMTools
       include_role:
@@ -33,6 +36,12 @@
         tasks_from: vmware-update-tools.yaml
         apply:
           delegate_to: localhost
+      vars:
+        hostname: "{{ vm_vcenter }}"
+        datacenter: "{{ vm_datacenter }}"
+        username: "{{ vm_vcenter_username }}"
+        password: "{{ vm_vcenter_password }}"
+        name: "{{ vm_name }}"
 
 #    - name: If required update VMTools
 #      include_role:
@@ -42,3 +51,11 @@
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ ansible_port }}"
+        ansible_connection: "{{ ansible_connection }}"
+        ansible_winrm_server_cert_validation: ignore
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 310
