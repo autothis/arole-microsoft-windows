@@ -10,8 +10,9 @@
       vars:
         ansible_user: "{{ winrm_username }}"
         ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ ansible_port }}"
-        ansible_connection: "{{ ansible_connection }}"
+        ansible_port: 5986
+        ansible_connection: winrm
+        ansible_winrm_transport: kerberos
         ansible_winrm_server_cert_validation: ignore
 
     - name: Install all available windows update
@@ -19,8 +20,9 @@
       vars:
         ansible_user: "{{ winrm_username }}"
         ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ ansible_port }}"
-        ansible_connection: "{{ ansible_connection }}"
+        ansible_port: 5986
+        ansible_connection: winrm
+        ansible_winrm_transport: kerberos
         ansible_winrm_server_cert_validation: ignore
         wsus: default
 
@@ -48,6 +50,7 @@
       vars:
         ansible_user: "{{ winrm_username }}"
         ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ ansible_port }}"
-        ansible_connection: "{{ ansible_connection }}"
+        ansible_port: 5986
+        ansible_connection: winrm
+        ansible_winrm_transport: kerberos
         ansible_winrm_server_cert_validation: ignore
