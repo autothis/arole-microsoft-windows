@@ -14,6 +14,9 @@
     reboot: yes
     reboot_timeout: 1200
     #log_path: c:\programdata\ansible_patchlog.log
+  become: yes
+  become_method: runas
+  become_user: "{{ ansible_user }}"
   register: windows_update_result
   until: windows_update_result.changed == false
   retries: 5

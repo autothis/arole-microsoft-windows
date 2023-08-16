@@ -17,10 +17,6 @@
 
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
-      apply:
-        become: yes
-        become_method: runas
-        become_user: "{{ ansible_user }}"
       vars:
         ansible_user: "{{ winrm_username }}"
         ansible_password: "{{ winrm_password }}"
