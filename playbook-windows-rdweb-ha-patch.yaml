@@ -29,7 +29,7 @@
       register: result    
 
     - debug:
-      msg: "{{ result }}"
+        msg: "{{ result }}"
 
 ## Re-enable this once a ansible role has been created.
 ##    - name: Disable Real Server
