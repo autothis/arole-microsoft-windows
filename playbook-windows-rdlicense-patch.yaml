@@ -23,7 +23,7 @@
     - name: If required update VMTools
       vars:
         ansible_connection: local
-        ansible_winrm_transport: ntlm
+        ansible_port: 22
         hostname: "{{ vm_vcenter }}"
         datacenter: "{{ vm_datacenter }}"
         username: "{{ vm_vcenter_username }}"
