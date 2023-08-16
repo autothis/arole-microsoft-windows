@@ -3,11 +3,9 @@
   hosts: all:!localhost
   serial: 1
   vars:
+    ansible_port: 5986
     ansible_user: "{{ winrm_username }}"
     ansible_password: "{{ winrm_password }}"
-    ansible_port: "{{ ansible_port }}"
-    ansible_connection: "{{ ansible_connection }}"
-    ansible_winrm_server_cert_validation: ignore
     ansible_winrm_operation_timeout_sec: 300
     ansible_winrm_read_timeout_sec: 310
     wsus: default
@@ -25,10 +23,6 @@
       include_tasks: tasks/windows-update-all.yaml
 
     - name: If required update VMTools
-      vars:
-        remote_user: root
-        connection: smart
-        become_method: sudo
       include_role:
         name: arole_vmware
         tasks_from: vmware-update-tools.yaml
