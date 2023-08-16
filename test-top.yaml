@@ -4,4 +4,4 @@
   serial: 1
   tasks:
     - name: Include Subplaybook1 
-      include: test-host.yaml
+      import_playbook: test-host.yaml
