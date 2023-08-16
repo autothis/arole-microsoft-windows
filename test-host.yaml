@@ -1,6 +1,6 @@
 ---
 - name: Microsoft RD Broker Failover (If Required)
-  hosts: inventory_hostname
+  hosts: all
   serial: 1
   vars:
     ansible_user: "{{ winrm_username }}"
@@ -9,6 +9,11 @@
     ansible_connection: "{{ ansible_connection }}"
     ansible_winrm_server_cert_validation: ignore
     wsus: default
+    hostname: "{{ vm_vcenter }}"
+    datacenter: "{{ vm_datacenter }}"
+    username: "{{ vm_vcenter_username }}"
+    password: "{{ vm_vcenter_password }}"
+    name: "{{ vm_name }}"
   become: yes
   become_method: runas
   become_user: "{{ ansible_user }}"
@@ -17,18 +22,7 @@
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
 
----
-- name: Update VMTools (If Required)
-  hosts: localhost
-  serial: 1
-  vars:
-    hostname: "{{ vm_vcenter }}"
-    datacenter: "{{ vm_datacenter }}"
-    username: "{{ vm_vcenter_username }}"
-    password: "{{ vm_vcenter_password }}"
-    name: "{{ vm_name }}"
-  tasks:
-
     - name: debug
         debug:
           msg: "I am running on {{ inventory_hostname }} and if that is blank {{ vm_name }}"
+        delegate_to: localhost
