@@ -17,14 +17,14 @@
 
     - name: Disable Real Server
       ansible.builtin.script:
-        cmd: kemp_disable_realserver.py --realserverip "{{ real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_username }}" --kemppassword "{{ kemp_password }}"
+        cmd: kemp_disable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp2_api_url }}" --kempusername "{{ kemp2_username }}" --kemppassword "{{ kemp2_password }}"
         executable: /usr/bin/python3
       delegate_to: localhost
       vars:
-        kemp_api_url: "{{ kemp_api_url }}"
-        kemp_username: "{{ kemp_username }}"
-        kemp_password: "{{ kemp_password }}"
-        real_server_ip: "{{ real_server_ip }}"
+        kemp2_api_url: "{{ kemp_api_url }}"
+        kemp2_username: "{{ kemp_username }}"
+        kemp2_password: "{{ kemp_password }}"
+        kemp_real_server_ip: "{{ real_server_ip }}"
       register: result    
 
     - debug:
