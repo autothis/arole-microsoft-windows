@@ -26,9 +26,10 @@
         ansible_winrm_operation_timeout_sec: 300
         ansible_winrm_read_timeout_sec: 310
         wsus: default
+      apply:
         become: yes
-      become_method: runas
-      become_user: "{{ ansible_user }}"
+        become_method: runas
+        become_user: "{{ ansible_user }}"
 
     - name: If required update VMTools
       include_role:
