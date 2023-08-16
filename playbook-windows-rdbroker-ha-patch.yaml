@@ -1,14 +1,21 @@
 ---
 - name: Microsoft RD Broker Failover (If Required)
-  hosts: inventory_hostname
+  hosts: all
   serial: 1
   vars:
     ansible_user: "{{ winrm_username }}"
     ansible_password: "{{ winrm_password }}"
-    ansible_port: "{{ ansible_port }}"
-    ansible_connection: "{{ ansible_connection }}"
+    ansible_port: 5986
+    ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
+    ansible_winrm_operation_timeout_sec: 300
+    ansible_winrm_read_timeout_sec: 310
     wsus: default
+    hostname: "{{ vm_vcenter }}"
+    datacenter: "{{ vm_datacenter }}"
+    username: "{{ vm_vcenter_username }}"
+    password: "{{ vm_vcenter_password }}"
+    name: "{{ vm_name }}"
   become: yes
   become_method: runas
   become_user: "{{ ansible_user }}"
@@ -23,22 +30,11 @@
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
     
-    - name: Confirm Ansible can communicate with the patched hosts
-      include_tasks: tasks/test-communication.yaml
-
----
-- name: Update VMTools (If Required)
-  hosts: localhost
-  serial: 1
-  vars:
-    hostname: "{{ vm_vcenter }}"
-    datacenter: "{{ vm_datacenter }}"
-    username: "{{ vm_vcenter_username }}"
-    password: "{{ vm_vcenter_password }}"
-    name: "{{ vm_name }}"
-  tasks:
-
     - name: If required update VMTools
       include_role:
         name: arole_vmware
         tasks_from: vmware-update-tools.yaml
+      delegate_to: localhost
+    
+    - name: Confirm Ansible can communicate with the patched hosts
+      include_tasks: tasks/test-communication.yaml

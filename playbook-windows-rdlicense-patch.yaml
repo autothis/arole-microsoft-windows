@@ -8,7 +8,14 @@
     ansible_port: 5986
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
+    ansible_winrm_operation_timeout_sec: 300
+    ansible_winrm_read_timeout_sec: 310
     wsus: default
+    hostname: "{{ vm_vcenter }}"
+    datacenter: "{{ vm_datacenter }}"
+    username: "{{ vm_vcenter_username }}"
+    password: "{{ vm_vcenter_password }}"
+    name: "{{ vm_name }}"
   become: yes
   become_method: runas
   become_user: "{{ ansible_user }}"
@@ -20,13 +27,11 @@
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
     
-#    - name: If required update VMTools
-#      include_role:
-#        name: arole_vmware
-#        tasks_from: vmware-update-tools
-
-#    - name: If required update VMTools
-#      ansible.builtin.import_playbook: playbook-vmware-update-tools.yaml
+    - name: If required update VMTools
+      include_role:
+        name: arole_vmware
+        tasks_from: vmware-update-tools.yaml
+      delegate_to: localhost
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
