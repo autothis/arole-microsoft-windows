@@ -28,7 +28,7 @@
         real_server_ip: "{{ real_server_ip }}"
       register: result    
 
-  - debug:
+    - debug:
       msg: "{{ result }}"
 
 ## Re-enable this once a ansible role has been created.
