@@ -1,5 +1,5 @@
 ---
-- name: Microsoft RD License Server Patching (HA)
+- name: Microsoft RD Broker Failover (If Required)
   hosts: all
   serial: 1
   vars:
@@ -17,6 +17,9 @@
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
 
+    - name: If required Failover RD Broker Management Server
+      include_tasks: tasks/windows-rdbroker-failover.yaml
+
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
     
@@ -24,9 +27,9 @@
 #      include_role:
 #        name: arole_vmware
 #        tasks_from: vmware-update-tools
-
-#    - name: If required update VMTools
-#      ansible.builtin.import_playbook: playbook-vmware-update-tools.yaml
+    
+    - name:
+      ansible.builtin.import_playbook: playbook-vmware-update-tools.yaml
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml

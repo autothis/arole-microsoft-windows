@@ -1,0 +1,7 @@
+---
+- name: Main Playbook
+  hosts: all
+  serial: 1
+  tasks:
+    - name: Include Subplaybook1 
+      include: test-host.yaml

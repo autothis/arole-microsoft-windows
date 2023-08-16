@@ -17,15 +17,6 @@
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
 
-    - name: If required Failover RD Broker Management Server
-      include_tasks: tasks/windows-rdbroker-failover.yaml
-
-    - name: Install all available windows update
-      include_tasks: tasks/windows-update-all.yaml
-    
-    - name: Confirm Ansible can communicate with the patched hosts
-      include_tasks: tasks/test-communication.yaml
-
 ---
 - name: Update VMTools (If Required)
   hosts: localhost
@@ -38,7 +29,6 @@
     name: "{{ vm_name }}"
   tasks:
 
-    - name: If required update VMTools
-      include_role:
-        name: arole_vmware
-        tasks_from: vmware-update-tools.yaml
+    - name: debug
+        debug:
+          msg: "I am running on {{ inventory_hostname }} and if that is blank {{ vm_name }}"
