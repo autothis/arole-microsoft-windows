@@ -5,8 +5,8 @@
   vars:
     ansible_user: "{{ winrm_username }}"
     ansible_password: "{{ winrm_password }}"
-    ansible_port: 5986
-    ansible_connection: winrm
+    ansible_port: "{{ ansible_port }}"
+    ansible_connection: "{{ ansible_connection }}"
     ansible_winrm_server_cert_validation: ignore
     ansible_winrm_operation_timeout_sec: 300
     ansible_winrm_read_timeout_sec: 310
