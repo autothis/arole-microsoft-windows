@@ -38,6 +38,7 @@
         username: "{{ vm_vcenter_username }}"
         password: "{{ vm_vcenter_password }}"
         name: "{{ vm_name }}"
+        vm_validate_certs: false
 
 #    - name: If required update VMTools
 #      include_role:
