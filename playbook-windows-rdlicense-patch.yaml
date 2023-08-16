@@ -22,6 +22,7 @@
 
     - name: If required update VMTools
       vars:
+        ansible_connection: local
         hostname: "{{ vm_vcenter }}"
         datacenter: "{{ vm_datacenter }}"
         username: "{{ vm_vcenter_username }}"
@@ -30,8 +31,8 @@
       include_role:
         name: arole_vmware
         tasks_from: vmware-update-tools.yaml
-#        apply:
-#          delegate_to: localhost
+        apply:
+          delegate_to: localhost
 
 #    - name: If required update VMTools
 #      include_role:
