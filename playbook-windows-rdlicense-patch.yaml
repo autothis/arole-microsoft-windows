@@ -26,12 +26,13 @@
 
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
-    
+
     - name: If required update VMTools
-      local_action:
-        module: include_role
+      include_role:
         name: arole_vmware
         tasks_from: vmware-update-tools.yaml
+        apply:
+          delegate_to: localhost
 
 #    - name: If required update VMTools
 #      include_role:
