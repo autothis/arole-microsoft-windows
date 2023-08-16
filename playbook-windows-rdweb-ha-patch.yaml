@@ -17,71 +17,24 @@
 
     - name: Disable Real Server
       ansible.builtin.script:
-        cmd: kemp_disable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp2_api_url }}" --kempusername "{{ kemp2_username }}" --kemppassword "{{ kemp2_password }}"
+        cmd: kemp_disable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
         executable: /usr/bin/python3
       delegate_to: localhost
       vars:
-        kemp2_api_url: "{{ kemp_api_url }}"
-        kemp2_username: "{{ kemp_username }}"
-        kemp2_password: "{{ kemp_password }}"
+        kemp_api_url: "{{ lb_api_url }}"
+        kemp_api_username: "{{ kemp_username }}"
+        kemp_api_password: "{{ kemp_password }}"
         kemp_real_server_ip: "{{ real_server_ip }}"
-      register: result    
+      register: disable_real_server
 
     - debug:
-        msg: "{{ result }}"
+        msg: "{{ disable_real_server }}"
 
-## Re-enable this once a ansible role has been created.
-##    - name: Disable Real Server
-##      include_role:
-##        name: arole_kemp
-##        tasks_from: kemp-disable-real-server.yaml
-##        apply:
-##          delegate_to: localhost
-##      vars:
-##        kemp_api_url: "{{ kemp_api_url }}"
-##        kemp_username: "{{ kemp_username }}"
-##        kemp_password: "{{ kemp_password }}"
-##        real_server_ip: "{{ real_server_ip }}"
-#
-#    - name: Install all available windows update
-#      include_tasks: tasks/windows-update-all.yaml
-#      vars:
-#        ansible_user: "{{ winrm_username }}"
-#        ansible_password: "{{ winrm_password }}"
-#        ansible_port: "{{ connection_port }}"
-#        ansible_connection: "{{ connection_type }}"
-#        ansible_winrm_transport: "{{ connection_transport }}"
-#        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
-#        wsus: default
-#
-#    - name: If required update VMTools
-#      include_role:
-#        name: arole_vmware
-#        tasks_from: vmware-update-tools.yaml
-#        apply:
-#          delegate_to: localhost
-#      vars:
-#        hostname: "{{ vm_vcenter }}"
-#        datacenter: "{{ vm_datacenter }}"
-#        username: "{{ vm_vcenter_username }}"
-#        password: "{{ vm_vcenter_password }}"
-#        name: "{{ vm_name }}"
-#        vm_validate_certs: false
-#
-#    - name: Confirm Ansible can communicate with the patched hosts
-#      include_tasks: tasks/test-communication.yaml
-#      vars:
-#        ansible_user: "{{ winrm_username }}"
-#        ansible_password: "{{ winrm_password }}"
-#        ansible_port: "{{ connection_port }}"
-#        ansible_connection: "{{ connection_type }}"
-#        ansible_winrm_transport: "{{ connection_transport }}"
-#        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
-#
-#    - name: Enable Real Server
+# Re-enable this once a ansible role has been created.
+#    - name: Disable Real Server
 #      include_role:
 #        name: arole_kemp
-#        tasks_from: kemp-enable-real-server.yaml
+#        tasks_from: kemp-disable-real-server.yaml
 #        apply:
 #          delegate_to: localhost
 #      vars:
@@ -89,3 +42,53 @@
 #        kemp_username: "{{ kemp_username }}"
 #        kemp_password: "{{ kemp_password }}"
 #        real_server_ip: "{{ real_server_ip }}"
+
+    - name: Install all available windows update
+      include_tasks: tasks/windows-update-all.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+        wsus: default
+
+    - name: If required update VMTools
+      include_role:
+        name: arole_vmware
+        tasks_from: vmware-update-tools.yaml
+        apply:
+          delegate_to: localhost
+      vars:
+        hostname: "{{ vm_vcenter }}"
+        datacenter: "{{ vm_datacenter }}"
+        username: "{{ vm_vcenter_username }}"
+        password: "{{ vm_vcenter_password }}"
+        name: "{{ vm_name }}"
+        vm_validate_certs: false
+
+    - name: Confirm Ansible can communicate with the patched hosts
+      include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+
+    - name: Enable Real Server
+      ansible.builtin.script:
+        cmd: kemp_enable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+        executable: /usr/bin/python3
+      delegate_to: localhost
+      vars:
+        kemp_api_url: "{{ lb_api_url }}"
+        kemp_api_username: "{{ kemp_username }}"
+        kemp_api_password: "{{ kemp_password }}"
+        kemp_real_server_ip: "{{ real_server_ip }}"
+      register: enable_real_server
+
+    - debug:
+        msg: "{{ enable_real_server }}"
