@@ -19,8 +19,7 @@
       ansible.builtin.script:
         cmd: kemp_disable_realserver.py
         executable: /usr/bin/python3
-        apply:
-          delegate_to: localhost
+      delegate_to: localhost
       vars:
         kemp_api_url: "{{ kemp_api_url }}"
         kemp_username: "{{ kemp_username }}"
