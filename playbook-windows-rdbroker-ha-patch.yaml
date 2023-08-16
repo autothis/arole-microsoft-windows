@@ -1,40 +1,64 @@
 ---
-- name: Microsoft RD Broker Failover (If Required)
+- name: Microsoft RD Broker Server Patching (HA)
   hosts: all
+  gather_facts: false
   serial: 1
-  vars:
-    ansible_user: "{{ winrm_username }}"
-    ansible_password: "{{ winrm_password }}"
-    ansible_port: "{{ ansible_port }}"
-    ansible_connection: "{{ ansible_connection }}"
-    ansible_winrm_server_cert_validation: ignore
-    ansible_winrm_operation_timeout_sec: 300
-    ansible_winrm_read_timeout_sec: 310
-    wsus: default
-    hostname: "{{ vm_vcenter }}"
-    datacenter: "{{ vm_datacenter }}"
-    username: "{{ vm_vcenter_username }}"
-    password: "{{ vm_vcenter_password }}"
-    name: "{{ vm_name }}"
-  become: yes
-  become_method: runas
-  become_user: "{{ ansible_user }}"
   tasks:
 
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: If required Failover RD Broker Management Server
       include_tasks: tasks/windows-rdbroker-failover.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+        become: yes
+        become_method: runas
+        become_user: "{{ ansible_user }}"
 
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
-    
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+        wsus: default
+
     - name: If required update VMTools
       include_role:
         name: arole_vmware
         tasks_from: vmware-update-tools.yaml
-      delegate_to: localhost
-    
+        apply:
+          delegate_to: localhost
+      vars:
+        hostname: "{{ vm_vcenter }}"
+        datacenter: "{{ vm_datacenter }}"
+        username: "{{ vm_vcenter_username }}"
+        password: "{{ vm_vcenter_password }}"
+        name: "{{ vm_name }}"
+        vm_validate_certs: false
+
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
