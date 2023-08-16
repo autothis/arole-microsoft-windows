@@ -23,6 +23,6 @@
       include_tasks: tasks/test-communication.yaml
 
     - name: debug
-        debug:
-          msg: "I am running on {{ inventory_hostname }} and if that is blank {{ vm_name }}"
-        delegate_to: localhost
+      debug:
+        msg: "I am running on {{ inventory_hostname }} and if that is blank {{ vm_name }}"
+      delegate_to: localhost
