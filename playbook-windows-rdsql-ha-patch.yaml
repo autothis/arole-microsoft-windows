@@ -1,5 +1,5 @@
 ---
-- name: Microsoft RD License Server Patching (HA)
+- name: Microsoft RD SQL Availability Group Server Patching (HA)
   hosts: all
   gather_facts: false
   serial: 1
@@ -15,6 +15,12 @@
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
+    - name: Confirm AG Health
+
+    - name: If required failover active SQL AG node
+
+    - name: Suspend SQL data movement
+
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
       vars:
@@ -24,7 +30,8 @@
         ansible_connection: "{{ connection_type }}"
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
-        ansible_winrm_connection_timeout: 1200
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 301
         wsus: default
 
     - name: If required update VMTools
@@ -50,3 +57,7 @@
         ansible_connection: "{{ connection_type }}"
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+
+    - name: Resume SQL data movement
+    
+    - name: Confirm AG Health
