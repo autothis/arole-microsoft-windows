@@ -1,6 +1,6 @@
-# LC_Active_Directory
+---
+collections:
+- name: community.general
+
 - src: git+https://github.com/autothis/vmware.git
   name: arole_vmware
-
-- src: https://galaxy.ansible.com
-  name: community.general
