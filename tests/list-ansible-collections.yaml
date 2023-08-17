@@ -1,0 +1,11 @@
+---
+- name: List Installed Ansible Collections
+  hosts: localhost
+  tasks:
+    - name: Get List of Installed Collections
+      shell: ansible-galaxy collection list
+      register: collections_list_output
+
+    - name: Display Installed Collections
+      debug:
+        var: collections_list_output.stdout_lines
