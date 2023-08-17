@@ -1,6 +1,7 @@
 ---
-- src: git+https://github.com/autothis/vmware.git
-  name: arole_vmware
-
 collections:
   - name: community.general
+
+roles:
+  - src: git+https://github.com/autothis/vmware.git
+    name: arole_vmware
