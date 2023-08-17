@@ -24,9 +24,11 @@
         ansible_connection: "{{ connection_type }}"
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
-      become: yes
-      become_method: runas
-      become_user: "{{ ansible_user }}"
+      args:
+        apply:
+          become: yes
+          become_method: runas
+          become_user: "{{ ansible_user }}"
 
     - name: Install all available windows update
       include_tasks: tasks/windows-update-all.yaml
