@@ -14,10 +14,10 @@
         script: |
           SELECT
               rcs.replica_server_name AS 'ReplicaServerName',
-      	    ag.name AS 'AvailabilityGroupName',
+            ag.name AS 'AvailabilityGroupName',
               sd.name AS 'DatabaseName',
               dr.replica_id AS 'ReplicaID',
-      	    sd.group_database_id AS 'GroupDatabaseID',
+            sd.group_database_id AS 'GroupDatabaseID',
               ar.role_desc AS 'Role',
               dr.synchronization_state_desc AS 'SyncState',
               dr.synchronization_health_desc AS 'SyncHealth'
