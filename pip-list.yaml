@@ -1,0 +1,11 @@
+---
+- name: List Installed Python Packages
+  hosts: localhost
+  tasks:
+    - name: Get List of Installed Python Packages
+      command: pip list
+      register: pip_list_output
+
+    - name: Display Installed Python Packages
+      debug:
+        var: pip_list_output.stdout_lines
