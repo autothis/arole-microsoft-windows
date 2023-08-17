@@ -31,6 +31,7 @@
           INNER JOIN sys.databases AS sd
               ON sd.group_database_id = dr.group_database_id
           ORDER BY rcs.replica_server_name, dr.replica_id;
+      delegate_to: localhost
       register: result
     
     - debug:
