@@ -1,5 +1,5 @@
 ---
-- name: Microsoft RD Web Server Patching (HA)
+- name: Microsoft RD Gateway Server Patching (HA)
   hosts: all
   gather_facts: false
   serial: 1
@@ -15,8 +15,8 @@
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
-    - name: Confirm Ansible can load RDWeb
-      include_tasks: tasks/test-rdweb-url.yaml
+    - name: Confirm Ansible can load RD Gateway Web Service
+      include_tasks: tasks/test-rdgateway-url.yaml
 
     - name: Disable Real Server
       ansible.builtin.script:
@@ -83,9 +83,8 @@
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
     
-    - name: Confirm Ansible can load RDWeb
-      include_tasks: tasks/test-rdweb-url.yaml
-      
+    - name: Confirm Ansible can load RD Gateway Web Service
+      include_tasks: tasks/test-rdgateway-url.yaml      
 
     - name: Enable Real Server
       ansible.builtin.script:

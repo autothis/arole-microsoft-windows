@@ -1,0 +1,7 @@
+---
+# This is a task to confirm Ansible can load RD Gateway Web Service on the patched hosts using the 'uri' Ansible Module
+
+- name: Test RD Gateway Web Service on "{{ inventory_hostname }}"
+  uri:
+    url: "https://{{ inventory_hostname }}"
+  delegate_to: localhost
