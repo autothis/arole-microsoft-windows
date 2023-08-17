@@ -33,6 +33,5 @@
           ORDER BY rcs.replica_server_name, dr.replica_id;
       register: result
     
-    - name: Print MSSQL Query Result
-        debug:
-          msg: "{{ result }}"
+    - debug:
+        msg: "{{ result }}"
