@@ -2,5 +2,5 @@
 collections:
   - name: community.general
 
-- src: git+https://github.com/autothis/vmware.git
-  name: arole_vmware
+  - name: arole_vmware
+    src: git+https://github.com/autothis/vmware.git
