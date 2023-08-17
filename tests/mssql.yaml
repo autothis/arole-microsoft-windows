@@ -34,4 +34,5 @@
       register: result
     
     - name: Print MSSQL Query Result
-        debug: "{{ result }}"
+        debug:
+          msg: "{{ result }}"
