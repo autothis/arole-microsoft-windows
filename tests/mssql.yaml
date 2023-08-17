@@ -7,7 +7,7 @@
 
     - name: Query with parameter
       community.general.mssql_script:
-        login_user: "{{ mssql_login_user }}"
+        login_user: "{{ mssql_login_user }}" #Username must be formatted as DOMAIN\User
         login_password: "{{ mssql_login_password }}"
         login_host: "{{ mssql_host }}"
         login_port: "{{ mssql_port }}"
