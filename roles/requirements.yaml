@@ -3,4 +3,5 @@ collections:
   - name: community.general
 
   - name: arole_vmware
-    src: git+https://github.com/autothis/vmware.git
+    src: https://github.com/autothis/vmware.git
+    scm: git
