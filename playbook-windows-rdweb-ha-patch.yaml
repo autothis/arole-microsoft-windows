@@ -15,6 +15,9 @@
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
+    - name: Confirm Ansible can load RDWeb
+      include_tasks: tasks/test-rdweb-url.yaml
+
     - name: Disable Real Server
       ansible.builtin.script:
         cmd: kemp_disable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
@@ -28,7 +31,7 @@
       register: disable_real_server
 
     - debug:
-        msg: "{{ disable_real_server }}"
+        msg: "{{ disable_real_server.stdout_lines }}"
 
 # Re-enable this once a ansible role has been created.
 #    - name: Disable Real Server
@@ -79,6 +82,10 @@
         ansible_connection: "{{ connection_type }}"
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+    
+    - name: Confirm Ansible can load RDWeb
+      include_tasks: tasks/test-rdweb-url.yaml
+      
 
     - name: Enable Real Server
       ansible.builtin.script:
@@ -93,4 +100,4 @@
       register: enable_real_server
 
     - debug:
-        msg: "{{ enable_real_server }}"
+        msg: "{{ enable_real_server.stdout_lines }}"

@@ -1,0 +1,6 @@
+---
+# This is a task to confirm Ansible can load RDWeb on the patched hosts using the 'uri' Ansible Module
+
+- name: Test RDWeb on "{{ inventory_hostname }}"
+  uri: "https://{{ inventory_hostname }}/rdweb"
+  delegate_to: localhost
