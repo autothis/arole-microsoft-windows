@@ -16,7 +16,7 @@
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: Query if host is active RD Broker Management Server
-      include_tasks: tasks/tasks/windows-rdbroker-failover.yaml
+      include_tasks: tasks/windows-rdbroker-failover.yaml
       vars:
         ansible_user: "{{ winrm_username }}"
         ansible_password: "{{ winrm_password }}"
