@@ -23,16 +23,26 @@
     #Requires -RunAsAdministrator
     Function Get-AmIActive {
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
-    	$ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
-    	if ($ActiveBroker -eq $CurrentFQDN) {
-    		Write-Output $True
-    		} else {
-    		Write-Output $False
-    		}
-    	}
-    
+    	try {
+            $ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
+          } catch {
+            $BrokerError = $True
+          }
+    	if ($BrokerError -eq $True) {
+		      Write-Output "Failed"
+        } else {
+          if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -eq $False) {
+            Write-Output "$($BrokerError) or something"
+            Write-Output $True
+            } else {
+            Write-Output $False
+            }
+          }
+        }
+
     Get-AmIActive
   register: windows_rdbroker_active
+  fail_when: windows_rdbroker_active.stdout | trim == "Failed"
 
 - name: If current RD Broker Server is active, failover
   ansible.windows.win_shell: |
@@ -51,16 +61,26 @@
 
 - name: Check to see if active RD Broker Server has changed
   ansible.windows.win_shell: |
+    #Requires -RunAsAdministrator
     Function Get-AmIActive {
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
-    	$ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
-    	if ($ActiveBroker -eq $CurrentFQDN) {
-    	  Write-Output $True
-    	  } else {
-    	  Write-Output $False
-    	  }
-    	}
-    
+    	try {
+            $ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
+          } catch {
+            $BrokerError = $True
+          }
+    	if ($BrokerError -eq $True) {
+		      Write-Output "Failed"
+        } else {
+          if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -eq $False) {
+            Write-Output "$($BrokerError) or something"
+            Write-Output $True
+            } else {
+            Write-Output $False
+            }
+          }
+        }
+
     Get-AmIActive
   register: windows_rdbroker_stillactive
   when: windows_rdbroker_active.stdout | trim == "True"
