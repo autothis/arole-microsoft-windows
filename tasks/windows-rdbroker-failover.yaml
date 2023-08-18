@@ -16,7 +16,7 @@
   register: windows_runas_admin
 
 - debug:
-    msg: "{{ windows_runas_admin }}"
+    msg: "{{ windows_runas_admin.stdout_lines }}"
 
 - name: Check to see if Current RD Broker Server is active
   ansible.windows.win_shell: |
@@ -93,4 +93,6 @@
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
     msg: "RD Broker Server Check Failed."
-  when: windows_rdbroker_stillactive.stdout | trim == "Failed"
+  when:
+    - windows_rdbroker_active.stdout | trim == "True"
+    - windows_rdbroker_stillactive.stdout | trim == "Failed"
