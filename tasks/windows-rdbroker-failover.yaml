@@ -32,7 +32,6 @@
               Write-Output "Failed"
         } else {
           if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -eq $False) {
-            Write-Output "$($BrokerError) or something"
             Write-Output $True
             } else {
             Write-Output $False
@@ -42,7 +41,11 @@
 
     Get-AmIActive
   register: windows_rdbroker_active
-  fail_when: windows_rdbroker_active.stdout | trim == "Failed"
+
+- name: Fail Ansible Play if RD Broker Server Check Fails
+  fail:
+    msg: "RD Broker Server Check Failed."
+  when: windows_rdbroker_active.stdout | trim == "Failed"
 
 - name: If current RD Broker Server is active, failover
   ansible.windows.win_shell: |
@@ -73,7 +76,6 @@
               Write-Output "Failed"
         } else {
           if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -eq $False) {
-            Write-Output "$($BrokerError) or something"
             Write-Output $True
             } else {
             Write-Output $False
@@ -87,3 +89,8 @@
   until: windows_rdbroker_stillactive.stdout | trim == "False"
   retries: 10
   delay: 30
+
+- name: Fail Ansible Play if RD Broker Server Check Fails
+  fail:
+    msg: "RD Broker Server Check Failed."
+  when: windows_rdbroker_stillactive.stdout | trim == "Failed"
