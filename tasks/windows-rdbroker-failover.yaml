@@ -1,6 +1,14 @@
 ---
 # This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
 
+- name: Check to which user is running the command
+  ansible.windows.win_shell: |
+    whoami
+  register: windows_runas_user
+
+- debug:
+    msg: "{{ windows_runas_user.stdout_lines }}"
+
 - name: Check to see if running as administrator
   ansible.windows.win_shell: |
     #Requires -RunAsAdministrator
