@@ -1,8 +1,43 @@
 ---
-# There seems to be some issues when running the Failover checks.
-# The error occurs because of the WinRM users profile.
-# Delete the profile from the Windows Server (cleanly through 'User Prfole Settings').
-# Then log into the machine (running a remote command does not seem to be enough).
+# Requirements:
+#   Inventory Example with Variables:
+#     Inventory Group:
+#       "DC1 Brokers"
+#         "vm_vcenter: vcenter.yourdomain.com"
+#         "vm_datacenter: DC1"
+#     Inventory Hosts:
+#       "DC1-BROKER01.yourdomain.com"
+#         "vm_name: DC1-BROKER01"
+#       "DC1-BROKER02.yourdomain.com"
+#         "vm_name: DC1-BROKER02"
+#
+#    Playbook Variables Examples:
+#      connection_port: 5986
+#      connection_type: winrm
+#      connection_transport: kerberos
+#      connection_cert_validation: ignore
+#
+#    Credentials Variables Examples:
+#      WinRM Credentials:
+#        winrm_username: winrm@YOURDOMAIN.COM
+#        winrm_password: insertpasswordhere
+#      vCenter Credentials:
+#        vm_vcenter_username" vcenter@yourdomain.com
+#        vm_vcenter_password: insertpasswordhere
+#
+#    Optional Playbook Requirements:
+#      Kerberos:
+#        For Kerberos to work, you will need to create a '/etc/krb5.conf' file (see example-krb5.conf in Git Repo)
+#
+#  Known Issues:
+#    1: There seems to be some issues when running the Failover checks.
+#       The error occurs because of the WinRM users profile.
+#       Delete the profile from the Windows Server (cleanly through 'User Prfole Settings').
+#       Then log into the machine to initialize the user profile (running a remote command does not seem to be enough).
+#
+#    2: The 'win_updates' Ansible Module has some known issues where it hangs and times out.
+#       Sometimes restarting the play and/or rebooting the inventory host fixes the issue, but not always.
+#         ref: https://github.com/ansible-collections/ansible.windows/issues/516
 
 - name: Microsoft RD Broker Server Patching (HA)
   hosts: all
