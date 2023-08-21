@@ -1,7 +1,8 @@
 ---
 # There seems to be some issues when running the Failover checks.
-# I have found that it works after removing the windows profile of the service account you are using to connect via WinRm.
-# Then logging into the machine as the user, and opening powershell seems to resolve this issue.
+# The error occurs because of the WinRM users profile.
+# Delete the profile from the Windows Server (cleanly through 'User Prfole Settings').
+# Then log into the machine (running a remote command does not seem to be enough).
 
 - name: Microsoft RD Broker Server Patching (HA)
   hosts: all

@@ -2,7 +2,8 @@
 # This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
 
 - name: Run an executable and send data to the stdin for the executable
-  ansible.windows.win_command: powershell.exe - |
+  ansible.windows.win_command: cmd.exe - |
+    powershell
     Get-RDConnectionBrokerHighAvailability
 
 - name: Check to which user is running the command
