@@ -39,7 +39,7 @@
           if ($BrokerError -eq $True) {
               Write-Output "Failed"
         } else {
-          if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -eq $False) {
+          if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -ne $True) {
             Write-Output $True
             } else {
             Write-Output $False
@@ -47,6 +47,7 @@
           }
         }
 
+    Import-Module RemoteDesktop
     Get-AmIActive
   register: windows_rdbroker_active
 
