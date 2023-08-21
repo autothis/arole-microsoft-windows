@@ -41,8 +41,7 @@
       if ($DatabaseReplicasConnected -and $DatabaseReplicasSynchronized) {
         Write-Output $True
       } else {
-        Write-Output "Is this SQL AG Database Healthy? $($DatabaseHealthy)"
-        Write-Output "Are the SQL AG Database Replicas Healthy? $($DatabaseReplicasHealthy)"
+        Write-Output $AvailabilityGroupReplicas | select Name,Role,ConnectionState,RollupSynchronizationState | fl
       }
   register: sql_replicas_healthy
 
