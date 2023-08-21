@@ -1,5 +1,0 @@
----
-# This is a task to confirm Ansible commuinication with the end host using the win_ping Ansible Module
-
-- name: Win Ping Test ("ping" winrm service)
-  win_ping:
