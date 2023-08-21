@@ -2,12 +2,11 @@
 # This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
 
 - name: Run an executable and send data to the stdin for the executable
-  ansible.windows.win_command: powershell.exe -
-  args:
-    stdin: Get-RDConnectionBrokerHighAvailability
+  ansible.windows.win_command: powershell.exe - |
+    Get-RDConnectionBrokerHighAvailability
 
 - name: Check to which user is running the command
-  ansible.windows.win_shell: |
+  ansible.windows.win_command: powershell.exe - |
     whoami
   register: windows_runas_user
 
@@ -15,7 +14,7 @@
     msg: "{{ windows_runas_user.stdout_lines }}"
 
 - name: Check to see if running as administrator
-  ansible.windows.win_shell: |
+  ansible.windows.win_command: powershell.exe - |
     #Requires -RunAsAdministrator
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal(
       [Security.Principal.WindowsIdentity]::GetCurrent()
