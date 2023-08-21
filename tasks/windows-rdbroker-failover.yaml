@@ -47,7 +47,6 @@
           }
         }
 
-    Import-Module RemoteDesktop
     Get-AmIActive
   register: windows_rdbroker_active
 
