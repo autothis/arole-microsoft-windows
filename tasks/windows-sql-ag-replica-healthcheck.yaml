@@ -41,8 +41,8 @@
       if ($DatabaseReplicasConnected -and $DatabaseReplicasSynchronized) {
         Write-Output $True
       } else {
-        Write-Output "Is this SQL AG Database Healthy? $DatabaseHealthy"
-        Write-Output "Are the SQL AG Database Replicas Healthy? $DatabaseReplicasHealthy"
+        Write-Output "Is this SQL AG Database Healthy? $($DatabaseHealthy)"
+        Write-Output "Are the SQL AG Database Replicas Healthy? $($DatabaseReplicasHealthy)"
       }
   register: sql_replicas_healthy
 
@@ -50,6 +50,5 @@
   fail:
     msg:
     - "SQL Replica Health Check Failed."
-    - "{{ sql_replicas_healthy }}"
     - "{{ sql_replicas_healthy.stdout }}"
   when: sql_replicas_healthy.stdout | trim != "True"
