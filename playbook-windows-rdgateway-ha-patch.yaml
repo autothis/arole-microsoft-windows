@@ -1,0 +1,142 @@
+---
+# Requirements:
+#   Inventory Example with Variables:
+#     Inventory Group:
+#       "DC1 Gateways"
+#         "vm_vcenter: vcenter.yourdomain.com"
+#         "vm_datacenter: DC1"
+#         "lb_api_url: 'https://dc1-kemp01.yourdomain.com/accessv2'"
+#     Inventory Hosts:
+#       "DC1-GATEWAY01.yourdomain.com"
+#         "vm_name: DC1-GATEWAY01"
+#         "real_server_ip: 172.1.1.10"
+#       "DC1-GATEWAY02.yourdomain.com"
+#         "vm_name: DC1-GATEWAY02"
+#         "real_server_ip: 172.1.1.11"
+#
+#    Playbook Variables Examples:
+#      connection_port: 5986
+#      connection_type: winrm
+#      connection_transport: kerberos
+#      connection_cert_validation: ignore
+#
+#    Credentials Variables Examples:
+#      WinRM Credentials:
+#        winrm_username: winrmuser@YOURDOMAIN.COM
+#        winrm_password: insertpasswordhere
+#      vCenter Credentials:
+#        vm_vcenter_username" vcenter@yourdomain.com
+#        vm_vcenter_password: insertpasswordhere
+#      Kemp Credentials:
+#        kemp_username" kempuser@yourdomain.com
+#        kemp_password: insertpasswordhere
+#
+#    Optional Playbook Requirements:
+#      Kerberos:
+#        For Kerberos to work, you will need to create a '/etc/krb5.conf' file (see example-krb5.conf in Git Repo)
+#
+#  Known Issues:
+#    1: The 'win_updates' Ansible Module has some known issues where it hangs and times out.
+#       Sometimes restarting the play and/or rebooting the inventory host fixes the issue, but not always.
+#         ref: https://github.com/ansible-collections/ansible.windows/issues/516
+
+- name: Microsoft RD Gateway Server Patching (HA)
+  hosts: all
+  gather_facts: false
+  serial: 1
+  tasks:
+
+    - name: Confirm Ansible can communicate with the hosts to be patched
+      include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+
+    - name: Confirm Ansible can load RD Gateway Web Service
+      include_tasks: tasks/test-rdgateway-url.yaml
+
+    - name: Disable Real Server
+      ansible.builtin.script:
+        cmd: scripts/kemp_disable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+        executable: /usr/bin/python3
+      delegate_to: localhost
+      vars:
+        kemp_api_url: "{{ lb_api_url }}"
+        kemp_api_username: "{{ kemp_username }}"
+        kemp_api_password: "{{ kemp_password }}"
+        kemp_real_server_ip: "{{ real_server_ip }}"
+      register: disable_real_server
+
+    - debug:
+        msg: "{{ disable_real_server.stdout_lines }}"
+
+# Re-enable this once a ansible role has been created.
+#    - name: Disable Real Server
+#      include_role:
+#        name: arole_kemp
+#        tasks_from: kemp-disable-real-server.yaml
+#        apply:
+#          delegate_to: localhost
+#      vars:
+#        kemp_api_url: "{{ kemp_api_url }}"
+#        kemp_username: "{{ kemp_username }}"
+#        kemp_password: "{{ kemp_password }}"
+#        real_server_ip: "{{ real_server_ip }}"
+
+    - name: Install all available windows update
+      include_tasks: tasks/windows-update-all.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+        ansible_winrm_connection_timeout: 1200
+        wsus: default
+
+    - name: If required update VMTools
+      include_role:
+        name: arole_vmware
+        tasks_from: vmware-update-tools.yaml
+        apply:
+          delegate_to: localhost
+      vars:
+        hostname: "{{ vm_vcenter }}"
+        datacenter: "{{ vm_datacenter }}"
+        username: "{{ vm_vcenter_username }}"
+        password: "{{ vm_vcenter_password }}"
+        name: "{{ vm_name }}"
+        vm_validate_certs: false
+
+    - name: Confirm Ansible can communicate with the patched hosts
+      include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+    
+    - name: Confirm Ansible can load RD Gateway Web Service
+      include_tasks: tasks/test-rdgateway-url.yaml      
+
+    - name: Enable Real Server
+      ansible.builtin.script:
+        cmd: scripts/kemp_enable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+        executable: /usr/bin/python3
+      delegate_to: localhost
+      vars:
+        kemp_api_url: "{{ lb_api_url }}"
+        kemp_api_username: "{{ kemp_username }}"
+        kemp_api_password: "{{ kemp_password }}"
+        kemp_real_server_ip: "{{ real_server_ip }}"
+      register: enable_real_server
+
+    - debug:
+        msg: "{{ enable_real_server.stdout_lines }}"

@@ -1,0 +1,38 @@
+---
+- name: Test MSSQL Connection
+  hosts: all
+  gather_facts: false
+  serial: 1
+  tasks:
+
+    - name: Query with parameter
+      community.general.mssql_script:
+        login_user: "{{ mssql_login_user }}" #Username must be formatted as DOMAIN\User
+        login_password: "{{ mssql_login_password }}"
+        login_host: "{{ mssql_host }}"
+        login_port: "{{ mssql_port }}"
+        script: |
+          SELECT
+              rcs.replica_server_name AS 'ReplicaServerName',
+            ag.name AS 'AvailabilityGroupName',
+              sd.name AS 'DatabaseName',
+              dr.replica_id AS 'ReplicaID',
+            sd.group_database_id AS 'GroupDatabaseID',
+              ar.role_desc AS 'Role',
+              dr.synchronization_state_desc AS 'SyncState',
+              dr.synchronization_health_desc AS 'SyncHealth'
+          FROM sys.dm_hadr_database_replica_states AS dr
+          INNER JOIN sys.dm_hadr_availability_replica_states AS ar
+              ON dr.replica_id = ar.replica_id
+          INNER JOIN sys.dm_hadr_availability_replica_cluster_states AS rcs
+              ON rcs.replica_id = ar.replica_id
+          INNER JOIN sys.availability_groups AS ag
+              ON ar.group_id = ag.group_id
+          INNER JOIN sys.databases AS sd
+              ON sd.group_database_id = dr.group_database_id
+          ORDER BY rcs.replica_server_name, dr.replica_id;
+      delegate_to: localhost
+      register: result
+    
+    - debug:
+        msg: "{{ result }}"

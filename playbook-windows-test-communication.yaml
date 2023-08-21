@@ -1,0 +1,15 @@
+---
+- name: Test WinRM Communication
+  hosts: all
+  gather_facts: false
+  tasks:
+
+    - name: Confirm Ansible can communicate with the hosts to be patched
+      include_tasks: tasks/test-communication.yaml
+      vars:
+        ansible_user: "{{ winrm_username }}"
+        ansible_password: "{{ winrm_password }}"
+        ansible_port: "{{ connection_port }}"
+        ansible_connection: "{{ connection_type }}"
+        ansible_winrm_transport: "{{ connection_transport }}"
+        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
