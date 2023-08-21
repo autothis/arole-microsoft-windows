@@ -4,7 +4,7 @@
 - name: Run an executable and send data to the stdin for the executable
   ansible.windows.win_command: powershell.exe -
   args:
-    stdin: Write-Host test
+    stdin: Get-RDConnectionBrokerHighAvailability
 
 - name: Check to which user is running the command
   ansible.windows.win_shell: |
