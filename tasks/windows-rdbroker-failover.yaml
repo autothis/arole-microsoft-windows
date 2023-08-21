@@ -23,12 +23,12 @@
     #Requires -RunAsAdministrator
     Function Get-AmIActive {
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
-    	try {
-            $ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
+          try {
+            $ActiveBroker = (Get-RDConnectionBrokerHighAvailability -ErrorAction stop).ActiveManagementServer
           } catch {
             $BrokerError = $True
           }
-    	if ($BrokerError -eq $True) {
+          if ($BrokerError -eq $True) {
               Write-Output "Failed"
         } else {
           if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -eq $False) {
