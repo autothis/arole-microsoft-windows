@@ -56,5 +56,7 @@
 
 - name: Fail Ansible Play if SQL Replica Health Check Fails
   fail:
-    msg: "{{ sql_replicas_healthy.stdout }}"
+    msg:
+    - "SQL Replica Health Check Failed."
+    - "{{ sql_replicas_healthy.stdout }}"
   when: sql_replicas_healthy.stdout | trim != "True"

@@ -24,7 +24,8 @@
         ansible_connection: "{{ connection_type }}"
         ansible_winrm_transport: "{{ connection_transport }}"
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
-
+      apply:
+        delegate_to: "{{ mssql_host }}"
 #    - name: If required failover active SQL AG node
 #
 #    - name: Suspend SQL data movement
