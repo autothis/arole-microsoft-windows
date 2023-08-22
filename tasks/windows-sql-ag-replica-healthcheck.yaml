@@ -55,17 +55,17 @@
             }
           Write-Output $ReplicaStatus | Convertto-json
         }
-  delegate_to: "{{ mssql_host }}"
+  delegate_to: "{{ sql_ag }}"
   register: sql_replicas_healthy
 
-- name: Fail Ansible Play if SQL Replicas Health Check Fails
+- name: Fail Ansible Play if SQL Replicas Health Check on "{{ sql_ag }}" Fails
   fail:
     msg:
-    - "SQL Replicas Health Check has Failed."
+    - "SQL Replicas Health Check on {{ sql_ag }} has Failed."
     - "{{ sql_replicas_healthy.stdout }}"
   when: sql_replicas_healthy.stdout | trim != "True"
 
 - name: SQL Replica Health Status
   ansible.builtin.debug:
-    msg: "SQL Replicas Health Check was Successful"
+    msg: "SQL Replicas Health Check on {{ sql_ag }} was Successful"
   when: sql_replicas_healthy.stdout | trim == "True"
