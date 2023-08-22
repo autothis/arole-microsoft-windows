@@ -49,5 +49,5 @@
   fail:
     msg:
     - "SQL Replica Health Check Failed."
-    - "{{ sql_replicas_healthy.stdout }}"
+    - "{{ sql_replicas_healthy.stdout_lines | trim }}"
   when: sql_replicas_healthy.stdout | trim != "True"
