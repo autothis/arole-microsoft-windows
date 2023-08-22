@@ -6,39 +6,42 @@
   ansible.windows.win_shell: |
     # Import Required Powershell Modules
       Import-Module SqlServer
-    
+
     # Initalise Variables
       $SystemHostname = hostname
       $ErrorActionPreference = 'Stop'
       $AvailabilityGroupDatabases = @()
       $AvailabilityGroupReplicas = @()
       $ReplicaStatus = @()
-    
+
     # Gather Data
       $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups"
-      
-      foreach ($AvailabilityGroup in $AvailabilityGroups) {
+
+      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
         $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
-      
-        foreach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+
+        ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
           $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
           }
       }
-    
+
+      $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
+
     # Evaluate Health
-      # Get replicas with ConnectionState not equal to "Connected"
+
+      # Get Replicas with ConnectionState not equal to "Connected"
       $DatabaseReplicasNotConnected = $AvailabilityGroupReplicas | Where-Object { $_.ConnectionState -ne "Connected" }
-      
-      # Determine if all replicas are connected
+
+      # Determine if all Replicas are connected
       $DatabaseReplicasConnected = $DatabaseReplicasNotConnected -eq $null
-      
-      # Get replicas with RollupSynchronizationState not equal to "Synchronized"
+
+      # Get Replicas with RollupSynchronizationState not equal to "Synchronized"
       $DatabaseReplicasNotSynchronized = $AvailabilityGroupReplicas | Where-Object { $_.RollupSynchronizationState -ne "Synchronized" }
-      
-      # Determine if all replicas are synchronized
+
+      # Determine if all Replicas are Synchronized
       $DatabaseReplicasSynchronized = $DatabaseReplicasNotSynchronized -eq $null
-      
-      # Overall health of replicas
+
+      # Overall Health of Replicas
       if ($DatabaseReplicasConnected -and $DatabaseReplicasSynchronized) {
         Write-Output $True
         } else {
@@ -55,9 +58,14 @@
   delegate_to: "{{ mssql_host }}"
   register: sql_replicas_healthy
 
-- name: Fail Ansible Play if SQL Replica Health Check Fails
+- name: Fail Ansible Play if SQL Replicas Health Check Fails
   fail:
     msg:
-    - "SQL Replica Health Check Failed."
+    - "SQL Replicas Health Check has Failed."
     - "{{ sql_replicas_healthy.stdout }}"
   when: sql_replicas_healthy.stdout | trim != "True"
+
+- name: SQL Replica Health Status
+  ansible.builtin.debug:
+    msg: "SQL Replicas Health Check was Successful"
+  when: sql_replicas_healthy.stdout | trim == "True"
