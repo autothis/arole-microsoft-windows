@@ -52,6 +52,7 @@
             }
           Write-Output $ReplicaStatus | Convertto-json
         }
+  delegate_to: "{{ mssql_host }}"
   register: sql_replicas_healthy
 
 - name: Fail Ansible Play if SQL Replica Health Check Fails
