@@ -12,6 +12,7 @@
       $ErrorActionPreference = 'Stop'
       $AvailabilityGroupDatabases = @()
       $AvailabilityGroupReplicas = @()
+      $ReplicaStatus = @()
     
     # Gather Data
       $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups"
@@ -40,14 +41,22 @@
       # Overall health of replicas
       if ($DatabaseReplicasConnected -and $DatabaseReplicasSynchronized) {
         Write-Output $True
-      } else {
-        Write-Output $AvailabilityGroupReplicas | select Name,Role,ConnectionState,RollupSynchronizationState | fl
-      }
+        } else {
+          foreach ($AvailabilityGroupReplica in $AvailabilityGroupReplicas) {
+            $ReplicaStatus += New-Object -TypeName PSObject -Property @{
+              Name = $AvailabilityGroupReplica.Name;
+              Role = ($AvailabilityGroupReplica.Role | Out-String).trim();
+              ConnectionState = ($AvailabilityGroupReplica.ConnectionState | Out-String).trim();
+              RollupSynchronizationState = ($AvailabilityGroupReplica.RollupSynchronizationState | Out-String).trim();
+              }
+            }
+          Write-Output $ReplicaStatus | Convertto-json
+        }
   register: sql_replicas_healthy
 
 - name: Fail Ansible Play if SQL Replica Health Check Fails
   fail:
     msg:
     - "SQL Replica Health Check Failed."
-    - "{{ sql_replicas_healthy.stdout_lines | trim }}"
+    - "{{ sql_replicas_healthy.stdout }}"
   when: sql_replicas_healthy.stdout | trim != "True"
