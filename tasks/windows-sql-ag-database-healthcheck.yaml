@@ -52,11 +52,11 @@
 - name: Fail Ansible Play if SQL Replica Node Health Check Fails
   fail:
     msg:
-    - "SQL Replica Node Health Check has Failed."
+    - "SQL Replica Node Health Check on {{ sql_ag }} has Failed."
     - "{{ sql_replica_node_healthy.stdout }}"
   when: sql_replica_node_healthy.stdout | trim != "True"
 
 - name: SQL Replica Node Health Status
   ansible.builtin.debug:
-    msg: "SQL Replica Node Health Check was Successful"
+    msg: "SQL Replica Node Health Check on {{ sql_ag }} was Successful"
   when: sql_replica_node_healthy.stdout | trim == "True"

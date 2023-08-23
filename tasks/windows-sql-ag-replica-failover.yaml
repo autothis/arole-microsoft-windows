@@ -50,16 +50,16 @@
 - name: Fail Ansible Play if SQL Replica Failover Check Fails
   fail:
     msg:
-    - "SQL Replica Failover Check has Failed."
+    - "SQL Replica Failover Check on {{ ansible_host }} has Failed."
     - "{{ sql_replica_failover_required.stdout }}"
   when: sql_replica_failover_required.stdout | trim != "True" and sql_replica_failover_required.stdout | trim != "False"
 
 - name: SQL Replica Failover Required
   ansible.builtin.debug:
-    msg: "SQL Replica Node Failover is Required."
+    msg: "SQL Replica Node {{ ansible_host }} Failover is Required."
   when: sql_replica_failover_required.stdout | trim == "True"
 
 - name: SQL Replica Failover Not Required
   ansible.builtin.debug:
-    msg: "SQL Replica Node Failover is not Required."
+    msg: "SQL Replica Node {{ ansible_host }} Failover is not Required."
   when: sql_replica_failover_required.stdout | trim == "False"

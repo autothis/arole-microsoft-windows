@@ -57,5 +57,5 @@
 
 - name: SQL Replica Node Health Status
   ansible.builtin.debug:
-    msg: "SQL Replica Node Health Check was Successful"
+    msg: "SQL Replica Node Health Check on {{ ansible_host }} was Successful"
   when: sql_replica_node_healthy.stdout | trim == "True"
