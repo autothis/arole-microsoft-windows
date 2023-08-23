@@ -14,13 +14,13 @@
       $AvailabilityGroupReplicas = @()
 
     # Gather Data
-      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups"
+      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
 
       ForEach ($AvailabilityGroup in $AvailabilityGroups) {
-        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
+        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
 
         ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
-          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
           }
       }
 
@@ -57,3 +57,50 @@
 - name: SQL Replica Failover Status
   ansible.builtin.debug:
     msg: "SQL Replica Node {{ ansible_host }} Failover is {{ 'Required' if sql_replica_failover_required.stdout | trim == 'True' else 'not Required' }}."
+
+- name: Failover Availability Group
+  ansible.windows.win_shell: |
+    # Import Required Powershell Modules
+      Import-Module SqlServer
+
+    # Initalise Variables
+      $SystemHostname = hostname
+      $ErrorActionPreference = 'Stop'
+      $AvailabilityGroupDatabases = @()
+      $AvailabilityGroupReplicas = @()
+
+    # Gather Data
+      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
+
+      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
+
+        ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+          }
+      }
+
+      $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
+#      $FailoverNode = ""
+#
+#    # Failover Availability Group
+#
+#      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+#        Switch-SqlAvailabilityGroup -Path SQLSERVER:\Sql\$($FailoverNode)\Default\AvailabilityGroups\$($$AvailabilityGroupDatabases.Name)
+#      }
+#
+#      # Does Replica Require Failover
+#      if ($HostPrimary) {
+#          Write-Output $True
+#        } elseif (!$HostPrimary) {
+#          Write-Output $False
+#        } else {
+#          $ReplicaNodeStatus = New-Object -TypeName PSObject -Property @{
+#            Name = $CurrentHost.Name;
+#            Role = ($CurrentHost.Role | Out-String).trim();
+#            ConnectionState = ($CurrentHost.ConnectionState | Out-String).trim();
+#            RollupSynchronizationState = ($CurrentHost.RollupSynchronizationState | Out-String).trim();
+#            }
+#          Write-Output $ReplicaNodeStatus | Select Name,Role,ConnectionState,RollupSynchronizationState | Convertto-json
+#        }
+  register: sql_replica_failover_required

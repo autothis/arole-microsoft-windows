@@ -15,17 +15,15 @@
       $ReplicaStatus = @()
 
     # Gather Data
-      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups"
+      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
 
       ForEach ($AvailabilityGroup in $AvailabilityGroups) {
-        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
+        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
 
         ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
-          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$SystemHostName\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)e\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
           }
       }
-
-      $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
 
     # Evaluate Health
 
