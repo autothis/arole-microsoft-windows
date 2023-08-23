@@ -2,7 +2,7 @@
 # This task will will check the health of the availability group replicas (needs to be run on active node).
 # Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
 
-- name: Check to see if Availability Group Replica Node is Healthy
+- name: Check to see if Availability Group Database is Healthy
   ansible.windows.win_shell: |
     # Import Required Powershell Modules
       Import-Module SqlServer
@@ -33,7 +33,7 @@
       $DatabaseSynchronized = $AvailabilityGroupDatabases.SynchronizationState -eq "Synchronized"
 
       # Database Health
-      if ($DatabaseSynchronized -and $DatabaseSuspended) {
+      if ($DatabaseSynchronized -and !$DatabaseSuspended) {
         Write-Output $True
         } else {
           foreach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
