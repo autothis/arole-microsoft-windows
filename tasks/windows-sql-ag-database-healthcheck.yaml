@@ -46,6 +46,7 @@
           Write-Output $DatabaseStatus | Select Name,IsSuspended,SynchronizationState | Convertto-json
         }
 
+  delegate_to: "{{ sql_ag }}"
   register: sql_replica_node_healthy
 
 - name: Fail Ansible Play if SQL Replica Node Health Check Fails

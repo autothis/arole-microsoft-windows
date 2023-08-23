@@ -26,7 +26,7 @@
         ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: Confirm AG Replica Node Health
-      include_tasks: tasks/windows-sql-ag-replica-node-healthcheck.yaml
+      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
       vars:
         ansible_user: "{{ winrm_username }}"
         ansible_password: "{{ winrm_password }}"
