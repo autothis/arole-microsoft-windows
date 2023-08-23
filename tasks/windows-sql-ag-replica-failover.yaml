@@ -104,3 +104,8 @@
 #          Write-Output $ReplicaNodeStatus | Select Name,Role,ConnectionState,RollupSynchronizationState | Convertto-json
 #        }
   register: sql_replica_failover_required
+
+- name: Failover Windows Failover Cluster
+  ansible.windows.win_shell: |
+    # add code here
+  register: sql_replica_failover_required
