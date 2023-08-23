@@ -24,28 +24,28 @@
           }
       }
 
-      $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
-
     # Evaluate Health
 
-      # Determine if Current Replica is Connected
-      $HostConnected = $CurrentHost.ConnectionState -eq "connected"
+      # Determine if Databases are Suspended
+      $DatabaseSuspended = $AvailabilityGroupDatabases.IsSuspended
 
-      # Determine if Current Replica is Synchronized
-      $HostSynchronized = $CurrentHost.RollupSynchronizationState -eq "Synchronized"
+      # Determine if Databases are Synchronized
+      $DatabaseSynchronized = $AvailabilityGroupDatabases.SynchronizationState -eq "Synchronized"
 
-      # Repica Node Health
-      if ($HostConnected -and $HostSynchronized) {
+      # Database Health
+      if ($DatabaseSynchronized -and $DatabaseSuspended) {
         Write-Output $True
         } else {
-          $ReplicaNodeStatus = New-Object -TypeName PSObject -Property @{
-            Name = $CurrentHost.Name;
-            Role = ($CurrentHost.Role | Out-String).trim();
-            ConnectionState = ($CurrentHost.ConnectionState | Out-String).trim();
-            RollupSynchronizationState = ($CurrentHost.RollupSynchronizationState | Out-String).trim();
+          foreach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+            $DatabaseStatus += New-Object -TypeName PSObject -Property @{
+              Name = $AvailabilityGroupDatabase.Name;
+              IsSuspended = ($AvailabilityGroupDatabase.IsSuspended | Out-String).trim();
+              SynchronizationState = ($AvailabilityGroupDatabase.SynchronizationState | Out-String).trim();
+              }
             }
-          Write-Output $ReplicaNodeStatus | Convertto-json
+          Write-Output $DatabaseStatus | Select Name,IsSuspended,SynchronizationState | Convertto-json
         }
+
   register: sql_replica_node_healthy
 
 - name: Fail Ansible Play if SQL Replica Node Health Check Fails
