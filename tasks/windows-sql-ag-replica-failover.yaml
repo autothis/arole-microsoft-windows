@@ -81,31 +81,86 @@
       }
 
       $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
-#      $FailoverNode = ""
-#
-#    # Failover Availability Group
-#
-#      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
-#        Switch-SqlAvailabilityGroup -Path SQLSERVER:\Sql\$($FailoverNode)\Default\AvailabilityGroups\$($$AvailabilityGroupDatabases.Name)
-#      }
-#
-#      # Does Replica Require Failover
-#      if ($HostPrimary) {
-#          Write-Output $True
-#        } elseif (!$HostPrimary) {
-#          Write-Output $False
-#        } else {
-#          $ReplicaNodeStatus = New-Object -TypeName PSObject -Property @{
-#            Name = $CurrentHost.Name;
-#            Role = ($CurrentHost.Role | Out-String).trim();
-#            ConnectionState = ($CurrentHost.ConnectionState | Out-String).trim();
-#            RollupSynchronizationState = ($CurrentHost.RollupSynchronizationState | Out-String).trim();
-#            }
-#          Write-Output $ReplicaNodeStatus | Select Name,Role,ConnectionState,RollupSynchronizationState | Convertto-json
-#        }
-  register: sql_replica_failover_required
+      $FailoverNode = $AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary"}
+
+    # Failover Availability Group
+
+      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+        Switch-SqlAvailabilityGroup -Path SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)
+      }
+  register: sql_replica_availaiblitygroup_failover
+  when: sql_replica_failover_required.stdout | trim == "True"
+
+- name: Check to see if Replica has been Failed Over
+  ansible.windows.win_shell: |
+    # Import Required Powershell Modules
+      Import-Module SqlServer
+
+    # Initalise Variables
+      $SystemHostname = hostname
+      $ErrorActionPreference = 'Stop'
+      $AvailabilityGroupDatabases = @()
+      $AvailabilityGroupReplicas = @()
+
+    # Gather Data
+      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
+
+      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
+
+        ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+          }
+      }
+
+      $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
+
+    # Evaluate Replica Role
+
+      # Determine if Current Replica Role is Primary
+      $HostPrimary = $CurrentHost.Role -eq "Primary"
+
+      # Does Replica Require Failover
+      if ($HostPrimary) {
+          Write-Output $True
+        } elseif (!$HostPrimary) {
+          Write-Output $False
+        } else {
+          $ReplicaNodeStatus = New-Object -TypeName PSObject -Property @{
+            Name = $CurrentHost.Name;
+            Role = ($CurrentHost.Role | Out-String).trim();
+            ConnectionState = ($CurrentHost.ConnectionState | Out-String).trim();
+            RollupSynchronizationState = ($CurrentHost.RollupSynchronizationState | Out-String).trim();
+            }
+          Write-Output $ReplicaNodeStatus | Select Name,Role,ConnectionState,RollupSynchronizationState | Convertto-json
+        }
+  register: sql_replica_stillactive
+  until: sql_replica_stillactive.stdout | trim == "False"
+  retries: 20
+  delay: 30
+
+- name: Fail Ansible Play if SQL Failover Fails
+  fail:
+    msg:
+    - "SQL Replica Availability Group Failover from {{ ansible_host }} has Failed."
+    - "{{ sql_replica_availaiblitygroup_failover.stdout }}"
+  when: sql_replica_stillactive.stdout | trim == "True" and sql_replica_failover_required.stdout | trim == "True"
 
 - name: Failover Windows Failover Cluster
   ansible.windows.win_shell: |
-    # add code here
-  register: sql_replica_failover_required
+    $CurrentHost = (hostname).tostring()
+    $Failover = Get-ClusterNode -Name $CurrentHost | Get-ClusterGroup | Move-ClusterGroup
+    if ($Failover.OwnerNode.Name -eq $CurrentHost -and $Failover.Name -ne "Available Storage") {
+        Write-Output $False
+      } elseif ($Failover.OwnerNode.Name -ne $CurrentHost -and $Failover.Name -ne "Available Storage") {
+        Write-Output $True
+      }
+  register: sql_replica_windows_failover_cluster
+  when: sql_replica_failover_required.stdout | trim == "True" and sql_replica_stillactive.stdout | trim == "False"
+
+- name: Fail Ansible Play if SQL Failover Fails
+  fail:
+    msg:
+    - "SQL Replica Windows Failover Cluster Failover From {{ ansible_host }} has Failed."
+    - "{{ sql_replica_windows_failover_cluster.stdout }}"
+  when: sql_replica_windows_failover_cluster.stdout | trim != "True" and sql_replica_failover_required.stdout | trim == "True"
