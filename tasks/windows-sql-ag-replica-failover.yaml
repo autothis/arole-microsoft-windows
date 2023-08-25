@@ -86,7 +86,7 @@
     # Failover Availability Group
 
       ForEach ($AvailabilityGroup in $AvailabilityGroups) {
-        Switch-SqlAvailabilityGroup -Path SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)
+        Switch-SqlAvailabilityGroup -Path "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)"
       }
   register: sql_replica_availaiblitygroup_failover
   when: sql_replica_failover_required.stdout | trim == "True"
