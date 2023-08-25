@@ -87,6 +87,8 @@
 
       ForEach ($AvailabilityGroup in $AvailabilityGroups) {
         $Path = "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)"
+        Get-ChildItem "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups"
+        Get-ChildItem "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)"
         Switch-SqlAvailabilityGroup -Path $Path
       }
   register: sql_replica_availaiblitygroup_failover
