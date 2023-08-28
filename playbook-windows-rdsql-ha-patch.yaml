@@ -30,7 +30,7 @@
         apply:
           become: yes
           become_method: runas
-          become_user: "{{ ansible_user }}"
+          become_user: "{{ winrm_username }}"
 
 #    - name: Suspend SQL data movement
 #
