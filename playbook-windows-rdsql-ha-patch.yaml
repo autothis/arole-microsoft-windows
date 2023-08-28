@@ -27,6 +27,10 @@
     - name: If Required Failover SQL AG Replica Node
       include_tasks: tasks/windows-sql-ag-replica-failover.yaml
 
+    - name: Debug Var
+      debug:
+        msg: "{{ sql_replica_failover_required_json }}"
+
 #    - name: Suspend SQL data movement
 #
 #    - name: Install all available windows update
