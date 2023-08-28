@@ -62,6 +62,7 @@
   ansible.windows.win_shell: |
     # Import Required Powershell Modules
       Import-Module SqlServer
+      Invoke-Sqlcmd | Out-Null
 
     # Initalise Variables
       $SystemHostname = hostname
