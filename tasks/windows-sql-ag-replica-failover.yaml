@@ -74,6 +74,7 @@
       [string]$SQLUsername = "{{ winrm_username }}"
       [securestring]$SQLPassword = ConvertTo-SecureString "{{ winrm_password }}" -AsPlainText -Force
       [pscredential]$SQLCredentials = New-Object System.Management.Automation.PSCredential ($SQLUsername, $SQLPassword)
+      write-ouput "{{ winrm_username }}"
 
     # Gather Data
       $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
