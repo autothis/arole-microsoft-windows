@@ -1,59 +1,31 @@
 ---
 - name: Microsoft RD SQL Availability Group Server Patching (HA)
   hosts: all
+  vars:
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
+    ansible_port: "{{ connection_port }}"
+    ansible_connection: "{{ connection_type }}"
+    ansible_winrm_transport: "{{ connection_transport }}"
+    ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
   gather_facts: false
   serial: 1
   tasks:
 
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
-      vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: Confirm AG Health
       include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
-      vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: Confirm AG Replica Node Health
       include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
-      vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: Confirm AG Database Health
       include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
-      vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: If Required Failover SQL AG Replica Node
       include_tasks: tasks/windows-sql-ag-replica-failover.yaml
-      vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
       args:
         apply:
           become: yes
@@ -65,12 +37,6 @@
 #    - name: Install all available windows update
 #      include_tasks: tasks/windows-update-all.yaml
 #      vars:
-#        ansible_user: "{{ winrm_username }}"
-#        ansible_password: "{{ winrm_password }}"
-#        ansible_port: "{{ connection_port }}"
-#        ansible_connection: "{{ connection_type }}"
-#        ansible_winrm_transport: "{{ connection_transport }}"
-#        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 #        ansible_winrm_operation_timeout_sec: 300
 #        ansible_winrm_read_timeout_sec: 301
 #        wsus: default
@@ -91,13 +57,6 @@
 #
 #    - name: Confirm Ansible can communicate with the patched hosts
 #      include_tasks: tasks/test-communication.yaml
-#      vars:
-#        ansible_user: "{{ winrm_username }}"
-#        ansible_password: "{{ winrm_password }}"
-#        ansible_port: "{{ connection_port }}"
-#        ansible_connection: "{{ connection_type }}"
-#        ansible_winrm_transport: "{{ connection_transport }}"
-#        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 #
 #    - name: Resume SQL data movement
 #    
