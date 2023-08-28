@@ -1,6 +1,7 @@
 ---
 # This task will will check the health of the availability group replicas (needs to be run on active node).
 # Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
+# I have hardcoded the SQL Instance 'Default' into these paths, at a future date i would like to pass that as a variable.
 
 - name: Check to see if Replica needs to be Failed Over
   ansible.windows.win_shell: |
@@ -62,13 +63,17 @@
   ansible.windows.win_shell: |
     # Import Required Powershell Modules
       Import-Module SqlServer
-      Invoke-Sqlcmd | Out-Null
 
     # Initalise Variables
       $SystemHostname = hostname
       $ErrorActionPreference = 'Stop'
       $AvailabilityGroupDatabases = @()
       $AvailabilityGroupReplicas = @()
+
+    # Create SQL Credentials Object
+      [string]$SQLUsername = "{{ winrm_username }}"
+      [securestring]$SQLPassword = ConvertTo-SecureString "{{ winrm_password }}" -AsPlainText -Force
+      [pscredential]$SQLCredentials = New-Object System.Management.Automation.PSCredential ($SQLUsername, $SQLPassword)
 
     # Gather Data
       $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
@@ -87,11 +92,15 @@
     # Failover Availability Group
 
       ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+        $SQLRoot = "SQLSERVER:\Sql\$($FailoverNode.Name)\Default"
         $Path = "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)"
-        Get-ChildItem "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups"
-        Get-ChildItem "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)"
+
+        New-PSDrive $($FailoverNode.Name) -PSProvider SqlServer -Root $SQLRoot -Credential $SQLCredentials -Scope 0
         Switch-SqlAvailabilityGroup -Path $Path
       }
+
+    # Cleanup SQL PSDrive
+      Remove-PSDrive $($FailoverNode.Name)
   register: sql_replica_availaiblitygroup_failover
   when: sql_replica_failover_required.stdout | trim == "True"
 

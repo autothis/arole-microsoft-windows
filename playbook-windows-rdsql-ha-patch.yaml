@@ -26,11 +26,6 @@
 
     - name: If Required Failover SQL AG Replica Node
       include_tasks: tasks/windows-sql-ag-replica-failover.yaml
-      args:
-        apply:
-          become: yes
-          become_method: runas
-          become_user: "{{ winrm_username }}"
 
 #    - name: Suspend SQL data movement
 #
