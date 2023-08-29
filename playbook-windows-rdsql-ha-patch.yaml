@@ -32,7 +32,7 @@
         msg: Test
         apply:
           delegate_to: "{{ sql_current_replica['failover_to_node'] }}"
-      when: "{{ sql_current_replica['failover_required'] | trim == 'True' }}"
+      when: sql_current_replica['failover_required'] | trim == 'True'
 
 #    - name: Suspend SQL data movement
 #
