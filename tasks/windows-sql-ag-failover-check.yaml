@@ -15,18 +15,52 @@
       $AvailabilityGroupReplicas = @()
 
     # Gather Data
-      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
-
-      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
-        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
-
-        ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
-          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+      ForEach ($Instance in (Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)")) {
+        $Instances += New-Object -TypeName PSObject -Property @{
+          InstanceName = $Instance.DisplayName;
+          Version = $Instance.Version;
+          ProductLevel = $Instance.ProductLevel;
+          UpdateLevel = $Instance.UpdateLevel;
+          HostPlatform = $Instance.HostPlatform;
           }
-      }
+        
+        ForEach ($AvailabilityGroup in (Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\$($Instance.DisplayName)\AvailabilityGroups")) {
+          $AvailabilityGroups += New-Object -TypeName PSObject -Property @{
+            Name = $AvailabilityGroup.Name;
+            PrimaryReplicaServerName = $AvailabilityGroup.PrimaryReplicaServerName;
+            InstanceName = $Instance.DisplayName;
+            }
+
+          ForEach ($AvailabilityGroupDatabase in (Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\$($Instance.DisplayName)\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases")) {
+            $AvailabilityGroupDatabases += New-Object -TypeName PSObject -Property @{
+              Name = $AvailabilityGroupDatabase.Name;
+              SynchronizationState = $AvailabilityGroupDatabase.SynchronizationState;
+              IsSuspended = $AvailabilityGroupDatabase.IsSuspended;
+              IsJoined = $AvailabilityGroupDatabase.IsJoined;
+              AvailabilityGroup = $AvailabilityGroup.Name;
+              InstanceName = $Instance.DisplayName;
+              }
+            ForEach ($AvailabilityGroupReplica in (Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\$($Instance.DisplayName)\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas")) {
+              $AvailabilityGroupReplicas += New-Object -TypeName PSObject -Property @{
+                Name = $AvailabilityGroupReplica.Name;
+                Role = $AvailabilityGroupReplica.Role;
+                ConnectionState = $AvailabilityGroupReplica.ConnectionState;
+                RollupSynchronizationState = $AvailabilityGroupReplica.RollupSynchronizationState;
+                AvailabilityGroup = $AvailabilityGroup.Name;
+                InstanceName = $Instance.DisplayName;
+                }
+              }
+            }
+          }
+        }
 
       $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
       $FailoverNode = $AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary"}
+
+      $AvailabilityGroupReplicas
+      $AvailabilityGroupDatabases
+      $AvailabilityGroups
+      $Instances
 
       $CurrentReplicaStatus = New-Object -TypeName PSObject -Property @{
         Name = $CurrentHost.Name;
@@ -43,7 +77,12 @@
       $FailoverResults = [PSCustomObject]@{
         failover_required = "$HostPrimary"
         failover_to_node = "$($FailoverNode.Name)"
-        current_replica_status = $CurrentReplicaStatus | Select Name,Role,ConnectionState,RollupSynchronizationState
+        failover_availability_groups = $AvailabilityGroups
+        current_replica_status = $CurrentReplicaStatus
+        sql_availability_group_replicas = $AvailabilityGroupReplicas
+        sql_availability_group_databases = $AvailabilityGroupDatabases
+        sql_availability_groups = $AvailabilityGroups
+        sql_instances = $Instances
         }
 
       $FailoverResults | convertto-json

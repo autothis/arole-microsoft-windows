@@ -27,9 +27,8 @@
     - name: Is Failover Required for Current SQL AG Replica Node
       include_tasks: tasks/windows-sql-ag-failover-check.yaml
 
-    - name: Debug Var
-      debug:
-        msg: Test
+    - name: Is Failover Current SQL AG Replica Node if Required
+      include_tasks: tasks/windows-sql-ag-failover-node.yaml
         apply:
           delegate_to: "{{ sql_current_replica['failover_to_node'] }}"
       when: sql_current_replica['failover_required'] | trim == 'True'
