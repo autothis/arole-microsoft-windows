@@ -51,7 +51,7 @@
         }
 
       $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
-      $FailoverNode = $AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary"}
+      $FailoverNode = ($AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary" -and $_.Name -ne $systemhostname})[0]
       If ($FailoverNode -eq $null) {
           $FailoverNode_FQDN = "Unable to identify"
         } else {
