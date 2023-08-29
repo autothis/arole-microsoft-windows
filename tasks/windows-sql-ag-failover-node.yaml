@@ -16,9 +16,7 @@
 
     # Initalise Variables
       $ErrorActionPreference = 'Stop'
-      $Instance = "{{ item['InstanceName'] }}"
-      $FailoverNode = "{{ sql_current_replica['failover_to_node'] }}"
-      $AvailabilityGroup = "{{ item['Name'] }}"
+      write-output "{{ item }}"
 
     # Failover Availability Group
       $Path = "SQLSERVER:\Sql\"$($FailoverNode)\Default\AvailabilityGroups\$($AvailabilityGroup)"
