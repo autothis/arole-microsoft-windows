@@ -4,7 +4,7 @@
 # I have hardcoded the SQL Instance 'Default' into these paths, at a future date i would like to pass that as a variable.
 
 - name: Check Failover Availability Group
-  ansible.windows.win_shell: "{{ lookup('file', 'scripts/windows-sql-ag-failover-check.ps1') }}"
+  ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
   register: sql_current_replica
 
 - name: Parse 'sql_current_replica' as JSON and set fact
