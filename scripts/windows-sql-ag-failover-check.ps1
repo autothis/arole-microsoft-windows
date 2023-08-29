@@ -52,6 +52,11 @@
 
       $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
       $FailoverNode = $AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary"}
+      If ($FailoverNode -eq $null) {
+          $FailoverNode_FQDN = "Unable to identify"
+        } else {
+          $FailoverNode_FQDN = (Resolve-DNSName $($FailoverNode.Name)).Name | Sort-Object -Unique
+        }
       $CurrentReplicaStatus = New-Object -TypeName PSObject -Property @{
         Name = $CurrentHost.Name;
         Role = ($CurrentHost.Role | Out-String).trim();
@@ -67,7 +72,7 @@
       $FailoverResults = [PSCustomObject]@{
         failover_required = $HostPrimary
         failover_to_node = $($FailoverNode.Name)
-        failover_to_node_fqdn = (Resolve-DNSName $($FailoverNode.Name)).Name
+        failover_to_node_fqdn = $FailoverNode_FQDN
         current_replica_status = $CurrentReplicaStatus
         sql_availability_group_replicas = $AvailabilityGroupReplicas
         sql_availability_group_databases = $AvailabilityGroupDatabases
