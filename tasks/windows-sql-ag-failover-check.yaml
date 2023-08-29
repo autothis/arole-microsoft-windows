@@ -1,0 +1,65 @@
+---
+# This task will will check the health of the availability group replicas (needs to be run on active node).
+# Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
+# I have hardcoded the SQL Instance 'Default' into these paths, at a future date i would like to pass that as a variable.
+
+- name: Failover Availability Group
+  ansible.windows.win_shell: |
+    # Import Required Powershell Modules
+      Import-Module SqlServer
+
+    # Initalise Variables
+      $SystemHostname = hostname
+      $ErrorActionPreference = 'Stop'
+      $AvailabilityGroupDatabases = @()
+      $AvailabilityGroupReplicas = @()
+
+    # Gather Data
+      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
+
+      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
+
+        ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+          }
+      }
+
+      $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
+      $FailoverNode = $AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary"}
+
+      $CurrentReplicaStatus = New-Object -TypeName PSObject -Property @{
+        Name = $CurrentHost.Name;
+        Role = ($CurrentHost.Role | Out-String).trim();
+        ConnectionState = ($CurrentHost.ConnectionState | Out-String).trim();
+        RollupSynchronizationState = ($CurrentHost.RollupSynchronizationState | Out-String).trim();
+        }
+
+    # Determine if Current Replica Role is Primary
+      $HostPrimary = $CurrentHost.Role -eq "Primary"
+
+    # Format Results in JSON
+          
+      $FailoverResults = [PSCustomObject]@{
+        failover_required = "$HostPrimary"
+        failover_to_node = "$($FailoverNode.Name)"
+        current_replica_status = $CurrentReplicaStatus | Select Name,Role,ConnectionState,RollupSynchronizationState
+        }
+
+      $FailoverResults | convertto-json
+  register: sql_current_replica
+
+- name: Parse 'sql_current_replica' as JSON and set fact
+  set_fact:
+    sql_current_replica: "{{ sql_current_replica.stdout | from_json }}"
+
+- name: Fail Ansible Play if SQL Replica Failover Check Fails
+  fail:
+    msg:
+    - "SQL Replica Failover Check on {{ ansible_host }} has Failed."
+    - "{{ sql_current_replica['current_replica_status'] }}"
+  when: sql_current_replica['failover_required'] | trim != "True" and sql_current_replica['failover_required'] | trim != "False"
+
+- name: SQL Replica Failover Status
+  ansible.builtin.debug:
+    msg: "SQL Replica Node {{ ansible_host }} Failover is {{ 'Required' if sql_current_replica['failover_required'] | trim == 'True' else 'not Required' }}."

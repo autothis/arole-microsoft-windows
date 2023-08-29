@@ -24,12 +24,15 @@
     - name: Confirm AG Database Health
       include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
 
-    - name: If Required Failover SQL AG Replica Node
-      include_tasks: tasks/windows-sql-ag-replica-failover.yaml
+    - name: Is Failover Required for Current SQL AG Replica Node
+      include_tasks: tasks/windows-sql-ag-failover-check.yaml
 
     - name: Debug Var
       debug:
-        msg: "{{ sql_replica_failover_required_json }}"
+        msg: Test
+        apply:
+          delegate_to: "{{ sql_current_replica['failover_to_node'] }}"
+      when: "{{ sql_current_replica['failover_required'] | trim == 'True' }}"
 
 #    - name: Suspend SQL data movement
 #
