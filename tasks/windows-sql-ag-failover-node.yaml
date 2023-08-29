@@ -19,3 +19,22 @@
 - name: SQL Replica Failover Status
   ansible.builtin.debug:
     msg: "{{ sql_replica_stillactive.stdout }}"
+
+- name: Failover Windows Failover Cluster
+  ansible.windows.win_shell: |
+    $CurrentHost = (hostname).tostring()
+    $Failover = Get-ClusterNode -Name $CurrentHost | Get-ClusterGroup | Move-ClusterGroup
+    if ($Failover.OwnerNode.Name -eq $CurrentHost -and $Failover.Name -ne "Available Storage") {
+        Write-Output $False
+      } elseif ($Failover.OwnerNode.Name -ne $CurrentHost -and $Failover.Name -ne "Available Storage") {
+        Write-Output $True
+      }
+  register: sql_replica_windows_failover_cluster
+  when: sql_replica_failover_required.stdout | trim == "True" and sql_replica_stillactive.stdout | trim == "False"
+
+- name: Fail Ansible Play if SQL Failover Fails
+  fail:
+    msg:
+    - "SQL Replica Windows Failover Cluster Failover From {{ ansible_host }} has Failed."
+    - "{{ sql_replica_windows_failover_cluster.stdout }}"
+  when: sql_replica_windows_failover_cluster.stdout | trim != "True" and sql_replica_failover_required.stdout | trim == "True"
