@@ -11,6 +11,6 @@
 - name: Check to see if Replica has been Failed Over
   ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
   register: sql_replica_stillactive
-  until: (sql_replica_stillactive | from_json)['failover_required'] | trim == "False"
+  until: (sql_replica_stillactive.stdout | from_json)['failover_required'] | trim == "False"
   retries: 20
   delay: 30
