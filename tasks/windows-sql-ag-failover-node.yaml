@@ -26,22 +26,3 @@
   with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   register: sql_failover
-
-- name: SQL Replica Failover Status
-  ansible.builtin.debug:
-    msg: "{{ sql_failover.stdout_lines }}"
-
-#- name: Parse 'sql_current_replica' as JSON and set fact
-#  set_fact:
-#    sql_current_replica: "{{ sql_current_replica.stdout | from_json }}"
-#
-#- name: Fail Ansible Play if SQL Replica Failover Check Fails
-#  fail:
-#    msg:
-#    - "SQL Replica Failover Check on {{ ansible_host }} has Failed."
-#    - "{{ sql_current_replica['current_replica_status'] }}"
-#  when: sql_current_replica['failover_required'] | trim != "True" and sql_current_replica['failover_required'] | trim != "False"
-#
-#- name: SQL Replica Failover Status
-#  ansible.builtin.debug:
-#    msg: "SQL Replica Node {{ ansible_host }} Failover is {{ 'Required' if sql_current_replica['failover_required'] | trim == 'True' else 'not Required' }}."
