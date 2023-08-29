@@ -3,10 +3,10 @@
 # Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
 # I have hardcoded the SQL Instance 'Default' into these paths, at a future date i would like to pass that as a variable.
 
-- name: Failover Availability Group
-  ansible.builtin.script: "scripts/windows-sql-ag-failover-node.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }}"
-  with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
-  delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
+#- name: Failover Availability Group
+#  ansible.builtin.script: "scripts/windows-sql-ag-failover-node.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }}"
+#  with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
+#  delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
 
 - name: Check to see if Replica has been Failed Over
   ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
