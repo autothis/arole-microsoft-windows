@@ -29,7 +29,6 @@
 
     - name: Is Failover Current SQL AG Replica Node if Required
       include_tasks: tasks/windows-sql-ag-failover-node.yaml
-      delegate_to: "{{ sql_current_replica['failover_to_node'] }}"
       when: sql_current_replica['failover_required'] | trim == 'True'
 
 #    - name: Suspend SQL data movement

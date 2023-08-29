@@ -18,6 +18,7 @@
       $Path = "SQLSERVER:\Sql\"$($FailoverNode)\Default\AvailabilityGroups\$($AvailabilityGroup)"
       Switch-SqlAvailabilityGroup -Path $Path
   register: sql_failover
+  delegate_to: "{{ sql_current_replica['failover_to_node'] }}"
 
 - name: SQL Replica Failover Status
   ansible.builtin.debug:
