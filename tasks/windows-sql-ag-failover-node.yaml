@@ -17,10 +17,6 @@
     # Initalise Variables
       $ErrorActionPreference = 'Stop'
       write-output "{{ item }}"
-
-    # Failover Availability Group
-      $Path = "SQLSERVER:\Sql\"$($FailoverNode)\Default\AvailabilityGroups\$($AvailabilityGroup)"
-      Switch-SqlAvailabilityGroup -Path $Path
   with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   register: sql_failover
