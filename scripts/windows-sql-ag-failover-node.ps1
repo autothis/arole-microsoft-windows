@@ -1,15 +1,12 @@
     Param
     (
       [Parameter(Mandatory)]
-      [Alias("Instance")] 
       [string[]]$Instance,
 
       [Parameter(Mandatory)]
-      [Alias("FailoverNode")] 
       [string[]]$FailoverNode,
 
       [Parameter(Mandatory)]
-      [Alias("AvailabilityGroup")] 
       [string[]]$AvailabilityGroup
     )
     
