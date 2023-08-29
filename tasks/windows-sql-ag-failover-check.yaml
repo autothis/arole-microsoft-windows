@@ -13,6 +13,9 @@
       $ErrorActionPreference = 'Stop'
       $AvailabilityGroupDatabases = @()
       $AvailabilityGroupReplicas = @()
+      $CurrentReplicaStatus = @()
+      $AvailabilityGroups = @()
+      $Instances = @()
 
     # Gather Data
       ForEach ($Instance in (Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)")) {
@@ -72,7 +75,6 @@
         failover_required = $HostPrimary
         failover_to_node = $($FailoverNode.Name)
         failover_to_node_fqdn = (Resolve-DNSName $($FailoverNode.Name)).Name
-        failover_availability_groups = $AvailabilityGroups
         current_replica_status = $CurrentReplicaStatus
         sql_availability_group_replicas = $AvailabilityGroupReplicas
         sql_availability_group_databases = $AvailabilityGroupDatabases
