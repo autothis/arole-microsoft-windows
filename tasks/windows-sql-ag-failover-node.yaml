@@ -17,4 +17,4 @@
 
 - name: SQL Replica Failover Status
   ansible.builtin.debug:
-    msg: "{{ sql_replica_stillactive.stdout | from_json }}"
+    msg: "{{ sql_replica_stillactive.stdout }}"
