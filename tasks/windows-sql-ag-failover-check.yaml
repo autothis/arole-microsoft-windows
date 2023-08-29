@@ -56,12 +56,6 @@
 
       $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
       $FailoverNode = $AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary"}
-
-      $AvailabilityGroupReplicas
-      $AvailabilityGroupDatabases
-      $AvailabilityGroups
-      $Instances
-
       $CurrentReplicaStatus = New-Object -TypeName PSObject -Property @{
         Name = $CurrentHost.Name;
         Role = ($CurrentHost.Role | Out-String).trim();
