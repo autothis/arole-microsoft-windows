@@ -7,7 +7,7 @@
       [string[]]$FailoverNode,
 
       [Parameter(Mandatory)]
-      [string[]]$AvailabilityGroup
+      [string[]]$AvailabilityGroup,
 
       [Parameter(Mandatory)]
       [string[]]$Action
