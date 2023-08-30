@@ -17,5 +17,5 @@
       $ErrorActionPreference = 'Stop'
 
     # Failover Availability Group
-      $Path = "SQLSERVER:\Sql\$($FailoverNode)\$($Instance)\AvailabilityGroups\$($AvailabilityGroup)"
-      Switch-SqlAvailabilityGroup -Path $Path -Confirm:$false
+      $Path = "SQLSERVER:\Sql\$($FailoverNode)\$($Instance)\AvailabilityGroups\$($AvailabilityGroup)\AvailabilityDatabases"
+      Get-ChildItem $Path | Suspend-SqlAvailabilityDatabase -Confirm:$false
