@@ -30,7 +30,7 @@
           ForEach ($AvailabilityGroupDatabase in (Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\$($Instance.DisplayName)\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases")) {
             $AvailabilityGroupDatabases += New-Object -TypeName PSObject -Property @{
               Name = $AvailabilityGroupDatabase.Name;
-              SynchronizationState = $AvailabilityGroupDatabase.SynchronizationState;
+              SynchronizationState = $($AvailabilityGroupDatabase.SynchronizationState | Out-String).trim();
               IsSuspended = $AvailabilityGroupDatabase.IsSuspended;
               IsJoined = $AvailabilityGroupDatabase.IsJoined;
               AvailabilityGroup = $AvailabilityGroup.Name;
@@ -39,9 +39,9 @@
             ForEach ($AvailabilityGroupReplica in (Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\$($Instance.DisplayName)\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas")) {
               $AvailabilityGroupReplicas += New-Object -TypeName PSObject -Property @{
                 Name = $AvailabilityGroupReplica.Name;
-                Role = $AvailabilityGroupReplica.Role;
-                ConnectionState = $AvailabilityGroupReplica.ConnectionState;
-                RollupSynchronizationState = $AvailabilityGroupReplica.RollupSynchronizationState;
+                Role = $($AvailabilityGroupReplica.Role | Out-String).trim();
+                ConnectionState = $($AvailabilityGroupReplica.ConnectionState | Out-String).trim();
+                RollupSynchronizationState = $($AvailabilityGroupReplica.RollupSynchronizationState | Out-String).trim();
                 AvailabilityGroup = $AvailabilityGroup.Name;
                 InstanceName = $Instance.DisplayName;
                 }
