@@ -35,7 +35,7 @@
       vars:
         data_movement_action: "suspend"
       include_tasks: tasks/windows-sql-ag-data-movement.yaml
-#
+
 #    - name: Install all available windows update
 #      include_tasks: tasks/windows-update-all.yaml
 #      vars:
@@ -56,10 +56,20 @@
 #        password: "{{ vm_vcenter_password }}"
 #        name: "{{ vm_name }}"
 #        vm_validate_certs: false
-#
-#    - name: Confirm Ansible can communicate with the patched hosts
-#      include_tasks: tasks/test-communication.yaml
-#
-#    - name: Resume SQL data movement
-#    
-#    - name: Confirm AG Health
+
+    - name: Confirm Ansible can communicate with the patched hosts
+      include_tasks: tasks/test-communication.yaml
+
+    - name: Resume SQL data movement
+      vars:
+        data_movement_action: "resume"
+      include_tasks: tasks/windows-sql-ag-data-movement.yaml
+    
+    - name: Confirm AG Health
+      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
+
+    - name: Confirm AG Replica Node Health
+      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
+
+    - name: Confirm AG Database Health
+      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
