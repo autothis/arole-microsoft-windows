@@ -33,7 +33,7 @@
 
     - name: Suspend SQL data movement
       vars:
-        action: "suspend"
+        data_movement_action: "suspend"
       include_tasks: tasks/windows-sql-ag-data-movement.yaml
 #
 #    - name: Install all available windows update
