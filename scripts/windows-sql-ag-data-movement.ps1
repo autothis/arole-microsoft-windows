@@ -8,6 +8,9 @@
 
       [Parameter(Mandatory)]
       [string[]]$AvailabilityGroup
+
+      [Parameter(Mandatory)]
+      [string[]]$Action
     )
     
     # Import Required Powershell Modules
@@ -15,7 +18,11 @@
 
     # Initalise Variables
       $ErrorActionPreference = 'Stop'
-
-    # Failover Availability Group
       $Path = "SQLSERVER:\Sql\$($FailoverNode)\$($Instance)\AvailabilityGroups\$($AvailabilityGroup)\AvailabilityDatabases"
-      Get-ChildItem $Path | Resume-SqlAvailabilityDatabase -Confirm:$false
+
+    # Suspend or Resume Availability Group Database
+      If ($Action -eq "suspend") {
+          Get-ChildItem $Path | Suspend-SqlAvailabilityDatabase -Confirm:$false
+        } elseif ($Action -eq "resume") {
+          Get-ChildItem $Path | Resume-SqlAvailabilityDatabase -Confirm:$false
+        }

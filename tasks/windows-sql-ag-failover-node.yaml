@@ -38,19 +38,3 @@
     - "SQL Replica Windows Failover Cluster Failover From {{ ansible_host }} has Failed."
     - "{{ sql_replica_windows_failover_cluster.stdout }}"
   when: sql_replica_windows_failover_cluster.stdout | trim != "True" and sql_current_replica['failover_required'] | trim == "True"
-
-- name: Suspend Availability Group Database Data Movement
-  ansible.builtin.script: "scripts/windows-sql-ag-suspend-data-movement.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }}"
-  with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
-  delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
-
-- name: Check to see if Data Movement has been Suspended
-  ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
-  register: sql_suspended_data_movement
-  delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
-  until: (sql_suspended_data_movement.stdout | from_json)['sql_availability_group_databases']
-          | map(attribute='IsSuspended')
-          | select('equalto', true)
-          | length == (sql_suspended_data_movement.stdout | from_json)['sql_availability_group_databases'] | length
-  retries: 20
-  delay: 30
