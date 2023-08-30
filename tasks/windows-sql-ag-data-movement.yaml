@@ -28,7 +28,7 @@
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   until: (sql_resume_data_movement.stdout | from_json)['sql_availability_group_databases']
           | map(attribute='IsSuspended')
-          | select('equalto', true)
+          | select('equalto', false)
           | length == (sql_resume_data_movement.stdout | from_json)['sql_availability_group_databases'] | length
   retries: 20
   delay: 30
