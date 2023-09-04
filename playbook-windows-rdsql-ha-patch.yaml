@@ -56,6 +56,7 @@
         password: "{{ vm_vcenter_password }}"
         name: "{{ vm_name }}"
         vm_validate_certs: false
+        ansible_connection: local
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
