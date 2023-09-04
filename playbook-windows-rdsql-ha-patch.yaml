@@ -36,26 +36,26 @@
         data_movement_action: "suspend"
       include_tasks: tasks/windows-sql-ag-data-movement.yaml
 
-#    - name: Install all available windows update
-#      include_tasks: tasks/windows-update-all.yaml
-#      vars:
-#        ansible_winrm_operation_timeout_sec: 300
-#        ansible_winrm_read_timeout_sec: 301
-#        wsus: default
-#
-#    - name: If required update VMTools
-#      include_role:
-#        name: arole_vmware
-#        tasks_from: vmware-update-tools.yaml
-#        apply:
-#          delegate_to: localhost
-#      vars:
-#        hostname: "{{ vm_vcenter }}"
-#        datacenter: "{{ vm_datacenter }}"
-#        username: "{{ vm_vcenter_username }}"
-#        password: "{{ vm_vcenter_password }}"
-#        name: "{{ vm_name }}"
-#        vm_validate_certs: false
+    - name: Install all available windows update
+      include_tasks: tasks/windows-update-all.yaml
+      vars:
+        ansible_winrm_operation_timeout_sec: 300
+        ansible_winrm_read_timeout_sec: 301
+        wsus: default
+
+    - name: If required update VMTools
+      include_role:
+        name: arole_vmware
+        tasks_from: vmware-update-tools.yaml
+        apply:
+          delegate_to: localhost
+      vars:
+        hostname: "{{ vm_vcenter }}"
+        datacenter: "{{ vm_datacenter }}"
+        username: "{{ vm_vcenter_username }}"
+        password: "{{ vm_vcenter_password }}"
+        name: "{{ vm_name }}"
+        vm_validate_certs: false
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
