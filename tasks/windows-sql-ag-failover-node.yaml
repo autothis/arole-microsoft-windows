@@ -21,7 +21,7 @@
     msg: "{{ sql_replica_notactive.stdout }}"
 
 - name: Failover Windows Failover Cluster
-  ansible.windows.win_shell: "scripts/windows-sql-ag-failover-cluster,ps1"
+  ansible.windows.win_shell: "scripts/windows-sql-ag-failover-cluster.ps1"
   register: sql_replica_windows_failover_cluster
   when: sql_current_replica['failover_required'] | trim == "True" and (sql_replica_notactive.stdout | from_json)['failover_required'] | trim == "True"
 
