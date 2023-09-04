@@ -1,0 +1,69 @@
+# Error action
+$ErrorActionPreference = 'Stop'
+ 
+# SQL Servers
+$SQLServers = 'SQL01','SQL02'
+ 
+# SQL Array
+$SQLArray = @()
+ 
+    # Looping servers
+    ForEach($SQLServer in $SQLServers)
+    {
+        Write-Warning "Processing $SQLServer"
+  
+        # SQL Paths
+        [string]$SQLpath1 = "SQLSERVER:\SQL\$SQLServer\Default\AvailabilityGroups\DC1-RDS\AvailabilityDatabases"
+        [string]$SQLpath2 = "SQLSERVER:\SQL\$SQLServer\Default\AvailabilityGroups\DC1-RDS\AvailabilityReplicas"
+      
+  
+        # Checking connection
+        Try
+        {
+            $SQLSession = New-PSSession -ComputerName $SQLServer
+        }
+        Catch
+        {
+            $_.Exception.Message
+            Write-Host " "
+            Continue
+        }
+ 
+  
+        # Importing SQLPS
+        Invoke-Command -Session $SQLSession -ScriptBlock{ Import-Module SQLPS -DisableNameChecking }
+  
+        # SQL info like role etc
+        $SQLinfo = Invoke-Command -Session $SQLSession -ScriptBlock{param($SQLpath2,$SQLServer)(Get-ChildItem $SQLpath2 | Where-Object {$_.name -eq $using:SQLServer})} -ArgumentList $SQLpath2,$SQLServer
+                  
+        # Database information
+        $Databases = Invoke-Command -Session $SQLSession -ScriptBlock{param($SQLpath1)(Get-ChildItem $SQLpath1)} -ArgumentList $SQLpath1
+  
+        ForEach($Database in $Databases)
+        {
+  
+            # Create a custom object 
+            $SQLObject = New-Object PSCustomObject
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "Server name" -Value $SQLServer
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "Role" -Value $SQLinfo.role
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "Member State" -Value $SQLinfo.Memberstate
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "Connected" -Value $SQLinfo.ConnectionState                              
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "Database name" -Value $Database.name
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "State" -Value $Database.SynchronizationState
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "Is suspended" -Value $Database.issuspended
+            $SQLObject | Add-Member -MemberType NoteProperty -Name "Is joined" -Value $Database.isjoined
+  
+            # Add custom object to our array
+            $SQLArray += $SQLObject
+  
+            # Exit session for server
+            Remove-PSSession $SQLsession
+            #Get-PSSession
+            #Get-PSSession | foreach {Remove-PSSession -id $_.id}
+        }
+    }
+     
+  
+ 
+    Write-Host "`nSQL Checks results:" -ForegroundColor Green
+    $SQLArray | Format-Table -AutoSize -Wrap

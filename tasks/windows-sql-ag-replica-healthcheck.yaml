@@ -1,0 +1,27 @@
+---
+# This task will will check the health of the availability group replicas (needs to be run on active node).
+# Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
+
+- name: Check to see if Availability Group Replica Node is Healthy
+  ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
+  register: sql_replica_node_health
+
+- name: Parse 'sql_replica_node_health' as JSON and set fact
+  set_fact:
+    sql_replica_node_health: "{{ sql_replica_node_health.stdout | from_json }}"
+
+- name: SQL Replica Node Health Status
+  ansible.builtin.debug:
+    msg: "SQL Replica Node Health Check on {{ ansible_host }} was Successful"
+  when:
+    - sql_replica_node_health['current_replica_status']['ConnectionState'] == "Connected"
+    - sql_replica_node_health['current_replica_status']['RollupSynchronizationState'] == "Synchronized"
+
+- name: Fail Ansible Play if SQL Replica Node Health Check Fails
+  fail:
+    msg:
+    - "SQL Replica Node Health Check has Failed."
+    - "{{ sql_replica_node_health.stdout }}"
+  when:
+    - sql_replica_node_health['current_replica_status']['ConnectionState'] != "Connected"
+    - sql_replica_node_health['current_replica_status']['RollupSynchronizationState'] != "Synchronized"

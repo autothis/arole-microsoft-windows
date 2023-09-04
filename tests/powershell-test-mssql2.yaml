@@ -1,0 +1,54 @@
+- name: Test Microsoft RD SQL Availability Group Server Patching (HA)
+  hosts: all
+  vars:
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
+    ansible_port: "{{ connection_port }}"
+    ansible_connection: "{{ connection_type }}"
+    ansible_winrm_transport: "{{ connection_transport }}"
+    ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+  gather_facts: false
+  serial: 1
+  tasks:
+    - name: Failover Availability Group
+      ansible.windows.win_shell: |
+        # Import Required Powershell Modules
+          Import-Module SqlServer
+    
+        # Initalise Variables
+          $SystemHostname = hostname
+          $ErrorActionPreference = 'Stop'
+          $AvailabilityGroupDatabases = @()
+          $AvailabilityGroupReplicas = @()
+    
+        # Create SQL Credentials Object
+          [string]$SQLUsername = "{{ winrm_username }}"
+          [securestring]$SQLPassword = ConvertTo-SecureString "{{ winrm_password }}" -AsPlainText -Force
+          [pscredential]$SQLCredentials = New-Object System.Management.Automation.PSCredential ($SQLUsername, $SQLPassword)
+    
+        # Gather Data
+          $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
+    
+          ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+            $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
+    
+            ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+              $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+              }
+          }
+    
+          $CurrentHost = $AvailabilityGroupReplicas | where-object {$_.name -eq $systemhostname}
+          $FailoverNode = $AvailabilityGroupReplicas | where-object {$_.Role -ne "Primary"}
+    
+        # Failover Availability Group
+    
+          ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+            $SQLRoot = "SQLSERVER:\Sql\$($FailoverNode.Name)\Default"
+            $Path = "SQLSERVER:\Sql\$($FailoverNode.Name)\Default\AvailabilityGroups\$($AvailabilityGroup.Name)"
+    
+            New-PSDrive $($FailoverNode.Name) -PSProvider SqlServer -Root $SQLRoot -Credential $SQLCredentials -Scope 0
+            Switch-SqlAvailabilityGroup -Path $Path
+          }
+    
+        # Cleanup SQL PSDrive
+          Remove-PSDrive $($FailoverNode.Name)

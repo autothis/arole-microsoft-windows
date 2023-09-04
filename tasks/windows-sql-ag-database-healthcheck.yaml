@@ -1,0 +1,62 @@
+---
+# This task will will check the health of the availability group replicas (needs to be run on active node).
+# Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
+
+- name: Check to see if Availability Group Database is Healthy
+  ansible.windows.win_shell: |
+    # Import Required Powershell Modules
+      Import-Module SqlServer
+
+    # Initalise Variables
+      $SystemHostname = hostname
+      $ErrorActionPreference = 'Stop'
+      $AvailabilityGroupDatabases = @()
+      $AvailabilityGroupReplicas = @()
+
+    # Gather Data
+      $AvailabilityGroups = Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups"
+
+      ForEach ($AvailabilityGroup in $AvailabilityGroups) {
+        $AvailabilityGroupDatabases += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityDatabases"
+
+        ForEach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+          $AvailabilityGroupReplicas += Get-ChildItem "SQLSERVER:\SQL\$($SystemHostName)\Default\AvailabilityGroups\$($AvailabilityGroup.name)\AvailabilityReplicas"
+          }
+      }
+
+    # Evaluate Health
+
+      # Determine if Databases are Suspended
+      $DatabaseSuspended = $AvailabilityGroupDatabases.IsSuspended
+
+      # Determine if Databases are Synchronized
+      $DatabaseSynchronized = $AvailabilityGroupDatabases.SynchronizationState -eq "Synchronized"
+
+      # Database Health
+      if ($DatabaseSynchronized -and !$DatabaseSuspended) {
+        Write-Output $True
+        } else {
+          foreach ($AvailabilityGroupDatabase in $AvailabilityGroupDatabases) {
+            $DatabaseStatus += New-Object -TypeName PSObject -Property @{
+              Name = $AvailabilityGroupDatabase.Name;
+              IsSuspended = ($AvailabilityGroupDatabase.IsSuspended | Out-String).trim();
+              SynchronizationState = ($AvailabilityGroupDatabase.SynchronizationState | Out-String).trim();
+              }
+            }
+          Write-Output $DatabaseStatus | Select Name,IsSuspended,SynchronizationState | Convertto-json
+        }
+
+  delegate_to: "{{ sql_ag }}"
+  register: sql_replica_node_healthy
+
+- name: Fail Ansible Play if SQL Replica Node Health Check Fails
+  fail:
+    msg:
+    - "SQL Replica Node Health Check on {{ sql_ag }} has Failed."
+    - "{{ sql_replica_node_healthy.stdout }}"
+  when: sql_replica_node_healthy.stdout | trim != "True"
+
+- name: SQL Replica Node Health Status
+  ansible.builtin.debug:
+    msg: "SQL Replica Node Health Check on {{ sql_ag }} was Successful"
+  when: sql_replica_node_healthy.stdout | trim == "True"
