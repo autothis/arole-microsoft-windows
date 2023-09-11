@@ -9,7 +9,7 @@
 
 - name: Parse 'sql_replica_node_healthy' as JSON and set fact
   set_fact:
-    sql_replicas_healthy: "{{ sql_replica_node_healthy.stdout | from_json }}"
+    sql_replica_node_healthy: "{{ sql_replica_node_healthy.stdout | from_json }}"
 
 - name: SQL Replica Node Health Status
   ansible.builtin.debug:
