@@ -3,7 +3,7 @@
 # Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
 
 - name: Check to see if Availability Group Replicas are Healthy
-  ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-check.ps1"
+  ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
   delegate_to: "{{ sql_ag }}"
   register: sql_replicas_healthy
 
