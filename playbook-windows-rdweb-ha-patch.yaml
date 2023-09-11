@@ -57,7 +57,7 @@
       include_tasks: tasks/test-communication.yaml
 
     - name: Confirm Ansible can load RDWeb
-      include_tasks: tasks/test-rdweb-url.yaml
+      include_tasks: tasks/rds/test-rdweb-url.yaml
 
     - name: Disable Real Server
       ansible.builtin.script:
@@ -89,7 +89,7 @@
 #        real_server_ip: "{{ real_server_ip }}"
 
     - name: Install all available windows update
-      include_tasks: tasks/windows-update-all.yaml
+      include_tasks: tasks/patching/windows-update-all.yaml
       vars:
         ansible_winrm_connection_timeout: 1200
         wsus: default
@@ -112,7 +112,7 @@
       include_tasks: tasks/test-communication.yaml
     
     - name: Confirm Ansible can load RDWeb
-      include_tasks: tasks/test-rdweb-url.yaml
+      include_tasks: tasks/rds/test-rdweb-url.yaml
 
     - name: Enable Real Server
       ansible.builtin.script:
