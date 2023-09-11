@@ -1,5 +1,19 @@
 ---
-- hosts: localhost
-  remote_user: root
-  roles:
-    - microsoft-windows-ansible
+- name: Microsoft RD SQL Availability Group Server Patching (HA)
+  hosts: all
+  vars:
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
+    ansible_port: "{{ connection_port }}"
+    ansible_connection: "{{ connection_type }}"
+    ansible_winrm_transport: "{{ connection_transport }}"
+    ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+  gather_facts: false
+  serial: 1
+  tasks:
+
+    - name: Confirm AG Health
+      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
+
+    - name: Confirm AG Database Health
+      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml

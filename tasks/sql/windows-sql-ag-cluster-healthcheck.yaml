@@ -1,0 +1,40 @@
+---
+# This task will will check the health of the availability group replicas (needs to be run on active node).
+# Target SQLAG.yourdomain.com rather than SQL01.yourdomain.com or SQL02.yourdomain.com
+
+- name: Check to see if Availability Group Replicas are Healthy
+  ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-check.ps1"
+  delegate_to: "{{ sql_ag }}"
+  register: sql_replicas_healthy
+
+- name: Parse 'sql_replicas_healthy' as JSON and set fact
+  set_fact:
+    sql_replicas_healthy: "{{ sql_replicas_healthy.stdout | from_json }}"
+
+- name: SQL Replicas Health Status
+  ansible.builtin.debug:
+    msg: "SQL Replicas Health Check on {{ ansible_host }} was Successful"
+  when:
+    - sql_replicas_healthy['current_replica_status']
+       | map(attribute='ConnectionState')
+       | select('equalto', Connected)
+       | length == sql_replicas_healthy['current_replica_status'] | length
+    - sql_replicas_healthy['current_replica_status']
+       | map(attribute='RollupSynchronizationState')
+       | select('equalto', Synchronized)
+       | length == sql_replicas_healthy['current_replica_status'] | length
+
+- name: Fail Ansible Play if SQL Replica Node Health Check Fails
+  fail:
+    msg:
+    - "SQL Replica Node Health Check has Failed."
+    - "{{ sql_replicas_healthy }}"
+  when:
+    - not sql_replicas_healthy['current_replica_status']
+       | map(attribute='ConnectionState')
+       | select('equalto', Connected)
+       | length == sql_replicas_healthy['current_replica_status'] | length
+    - not sql_replicas_healthy['current_replica_status']
+       | map(attribute='RollupSynchronizationState')
+       | select('equalto', Synchronized)
+       | length == sql_replicas_healthy['current_replica_status'] | length

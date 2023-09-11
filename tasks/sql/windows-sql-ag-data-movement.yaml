@@ -1,11 +1,11 @@
 - name: Suspend Availability Group Database Data Movement
-  ansible.builtin.script: "scripts/windows-sql-ag-data-movement.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }} -Action {{ data_movement_action }}"
+  ansible.builtin.script: "scripts/sql/windows-sql-ag-data-movement.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }} -Action {{ data_movement_action }}"
   with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   when: data_movement_action == "suspend"
 
 - name: Check to see if Data Movement has been Suspended
-  ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
+  ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-check.ps1"
   register: sql_suspended_data_movement
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   until: (sql_suspended_data_movement.stdout | from_json)['sql_availability_group_databases']
@@ -17,13 +17,13 @@
   when: data_movement_action == "suspend"
 
 - name: Resume Availability Group Database Data Movement
-  ansible.builtin.script: "scripts/windows-sql-ag-data-movement.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }} -Action {{ data_movement_action }}"
+  ansible.builtin.script: "scripts/sql/windows-sql-ag-data-movement.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }} -Action {{ data_movement_action }}"
   with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   when: data_movement_action == "resume"
 
 - name: Check to see if Data Movement has been Resumed
-  ansible.builtin.script: "scripts/windows-sql-ag-failover-check.ps1"
+  ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-check.ps1"
   register: sql_resume_data_movement
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   until: (sql_resume_data_movement.stdout | from_json)['sql_availability_group_databases']
