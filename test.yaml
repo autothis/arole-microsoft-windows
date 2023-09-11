@@ -13,7 +13,7 @@
   tasks:
 
     - name: Confirm AG Health
-      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-cluster-healthcheck.yaml
 
     - name: Confirm AG Database Health
-      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-database-healthcheck.yaml
