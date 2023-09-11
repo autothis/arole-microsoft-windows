@@ -15,14 +15,14 @@
   ansible.builtin.debug:
     msg: "SQL Replicas Health Check on {{ ansible_host }} was Successful"
   when:
-    - sql_replicas_healthy['current_replica_status']
+    - sql_replicas_healthy['sql_availability_group_replicas']
        | map(attribute='ConnectionState')
        | select('equalto', Connected)
        | length == sql_replicas_healthy['current_replica_status'] | length
     - sql_replicas_healthy['current_replica_status']
        | map(attribute='RollupSynchronizationState')
        | select('equalto', Synchronized)
-       | length == sql_replicas_healthy['current_replica_status'] | length
+       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
 
 - name: Fail Ansible Play if SQL Replica Node Health Check Fails
   fail:
@@ -33,8 +33,8 @@
     - not sql_replicas_healthy['current_replica_status']
        | map(attribute='ConnectionState')
        | select('equalto', Connected)
-       | length == sql_replicas_healthy['current_replica_status'] | length
+       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
     - not sql_replicas_healthy['current_replica_status']
        | map(attribute='RollupSynchronizationState')
        | select('equalto', Synchronized)
-       | length == sql_replicas_healthy['current_replica_status'] | length
+       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
