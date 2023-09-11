@@ -30,11 +30,11 @@
     - "SQL Replica Node Health Check has Failed."
     - "{{ sql_replicas_healthy }}"
   when:
-    - not sql_replicas_healthy['current_replica_status']
+    - not sql_replicas_healthy['sql_availability_group_replicas']
        | map(attribute='ConnectionState')
-       | select('equalto', Connected)
+       | select('equalto', 'Connected')
        | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-    - not sql_replicas_healthy['current_replica_status']
+    - not sql_replicas_healthy['sql_availability_group_replicas']
        | map(attribute='RollupSynchronizationState')
-       | select('equalto', Synchronized)
+       | select('equalto', 'Synchronized')
        | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
