@@ -24,7 +24,7 @@
        | select('equalto', 'Synchronized')
        | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
 
-- name: Fail Ansible Play if SQL Replica Node Health Check Fails
+- name: Fail Ansible Play if SQL Replicas Node Health Check Fails
   fail:
     msg:
     - "SQL Replica Node Health Check has Failed."
