@@ -1,0 +1,38 @@
+---
+# This task will will check the health of the Exchange Server.
+
+- name: Run Health Check for "{{ inventory_hostname }}"
+  ansible.builtin.script: "scripts/exchange/exchange-node-health-check.ps1"
+  register: exchange_node_health_check
+
+- name: Parse 'exchange_node_health_check' as JSON and set fact
+  set_fact:
+    sql_replicas_healthy: "{{ exchange_node_health_check.stdout | from_json }}"
+
+#- name: SQL Replicas Health Status
+#  ansible.builtin.debug:
+#    msg: "SQL Replicas Health Check on {{ ansible_host }} was Successful"
+#  when:
+#    - sql_replicas_healthy['sql_availability_group_replicas']
+#       | map(attribute='ConnectionState')
+#       | select('equalto', 'Connected')
+#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
+#    - sql_replicas_healthy['sql_availability_group_replicas']
+#       | map(attribute='RollupSynchronizationState')
+#       | select('equalto', 'Synchronized')
+#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
+#
+#- name: Fail Ansible Play if SQL Replicas Node Health Check Fails
+#  fail:
+#    msg:
+#    - "SQL Replica Node Health Check has Failed."
+#    - "{{ sql_replicas_healthy }}"
+#  when:
+#    - not sql_replicas_healthy['sql_availability_group_replicas']
+#       | map(attribute='ConnectionState')
+#       | select('equalto', 'Connected')
+#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
+#    - not sql_replicas_healthy['sql_availability_group_replicas']
+#       | map(attribute='RollupSynchronizationState')
+#       | select('equalto', 'Synchronized')
+#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
