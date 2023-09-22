@@ -33,6 +33,7 @@
 - name: Check to see if Current RD Broker Server is active
   ansible.windows.win_shell: |
     #Requires -RunAsAdministrator
+    Import-Module RemoteDesktop
     Function Get-AmIActive {
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
           try {
@@ -61,6 +62,7 @@
 
 - name: If current RD Broker Server is active, failover
   ansible.windows.win_shell: |
+    Import-Module RemoteDesktop
     Function Get-AvailableBroker {
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
       $Brokers = (Get-RDConnectionBrokerHighAvailability).ConnectionBroker
@@ -77,6 +79,7 @@
 - name: Check to see if active RD Broker Server has changed
   ansible.windows.win_shell: |
     #Requires -RunAsAdministrator
+    Import-Module RemoteDesktop
     Function Get-AmIActive {
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
     	try {
