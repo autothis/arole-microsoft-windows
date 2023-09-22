@@ -21,6 +21,7 @@
 - name: Check to see if Current RD Broker Server is active
   ansible.windows.win_shell: |
     #Requires -RunAsAdministrator
+    Import-Module RemoteDesktop
     Function Get-AmIActive {
       $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
     	try {
