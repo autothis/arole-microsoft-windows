@@ -1,5 +1,5 @@
 ---
-- name: Microsoft RD SQL Availability Group Server Patching (HA)
+- name: Test Playbook
   hosts: all
   vars:
     ansible_user: "{{ winrm_username }}"
@@ -13,7 +13,4 @@
   tasks:
 
     - name: Confirm AG Health
-      include_tasks: tasks/sql/windows-sql-ag-cluster-healthcheck.yaml
-
-    - name: Confirm AG Database Health
-      include_tasks: tasks/sql/windows-sql-ag-database-healthcheck.yaml
+      include_tasks: tasks/rds/test-rdbroker-active.yaml

@@ -1,49 +1,48 @@
 ---
 # This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
+# Unofrtunately due to limitations with remotely running the 'Get-RD'
 
-- name: Check to see if running as administrator
-  ansible.windows.win_shell: |
-    #Requires -RunAsAdministrator
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal(
-      [Security.Principal.WindowsIdentity]::GetCurrent()
-      )
-    $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    if ($isAdmin) {
-      Write-Host "PowerShell is running as admin."
-    } else {
-      Write-Host "PowerShell is not running as admin."
-    }
-  register: windows_runas_admin
+- name: Remove 'AmIActive.json' file if present
+  ansible.windows.win_file:
+    path: C:\temp\AmIActive.json
+    state: absent
+
+- name: Copy Powershell script to "{{ inventory_hostname }}"
+  ansible.windows.win_copy:
+    src: scripts/rds/windows-rds-broker-active.ps1
+    dest: C:\Temp\windows-rds-broker-active.ps1
+
+- name: Create 'AmIActive' Scheduled task
+  community.windows.win_scheduled_task:
+    name: RDBroker-AmIActive
+    username: "{{ winrm_username }}"
+    password: "{{ winrm_password }}"
+    logon_type: password
+    actions:
+    - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+      arguments: -ExecutionPolicy bypass -NonInteractive -NoLogo -File C:\temp\windows-rds-broker-active.ps1
+    run_level: highest
+    triggers:
+    - type: registration
+    state: present
+
+- name: Get contents of 'C:\temp\AmIActive.json'
+   win_shell: 'type C:\temp\AmIActive.json'  
+   register: windows_rdbroker_active
 
 - debug:
-    msg: "{{ windows_runas_admin.stdout_lines }}"
+    msg: "{{ windows_rdbroker_active.stdout | from_json }}"
 
-- name: Check to see if Current RD Broker Server is active
-  ansible.windows.win_shell: |
-    #Requires -RunAsAdministrator
-    Import-Module RemoteDesktop
-    Function Get-AmIActive {
-      $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
-    	try {
-            $ActiveBroker = (Get-RDConnectionBrokerHighAvailability).ActiveManagementServer
-          } catch {
-            $BrokerError = $True
-          }
-    	if ($BrokerError -eq $True) {
-              Write-Output "Failed"
-        } else {
-          if ($ActiveBroker -eq $CurrentFQDN -and $BrokerError -eq $False) {
-            Write-Output $True
-            } else {
-            Write-Output $False
-            }
-          }
-        }
-
-    Get-AmIActive
-  register: windows_rdbroker_active
+- debug:
+    msg: "{{ (windows_rdbroker_active.stdout | from_json)['error'] }}"
 
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
     msg: "RD Broker Server Check Failed."
-  when: windows_rdbroker_active.stdout | trim == "Failed"
+  when: (windows_rdbroker_active.stdout | from_json)['error'] != ""
+
+- name: Create 'AmIActive' Scheduled task
+  community.windows.win_scheduled_task:
+    name: RDBroker-AmIActive
+    state: absent
+
