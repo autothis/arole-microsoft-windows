@@ -63,7 +63,11 @@
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
     msg: "RD Broker Server Check Failed."
-  when: (windows_rdbroker_active.stdout | from_json)['error'] != ""
+  when: (windows_rdbroker_active.stdout | from_json)['error'] != "[]"
+
+- name: Create 'AmIActive' Scheduled task
+  ansible.windows.win_shell: |
+    Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
 
 ## Requires Ansible 'community.windows' collection
 #- name: Delete 'AmIActive' Scheduled task
