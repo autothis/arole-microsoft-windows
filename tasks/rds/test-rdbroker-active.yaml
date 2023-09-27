@@ -46,6 +46,10 @@
   ansible.windows.win_shell: |
     Start-ScheduledTask -TaskName "{{ amiactive_task }}"
 
+- name: Wait for file "{{ amiactive_output }}" to exist before continuing
+  ansible.windows.win_wait_for:
+    path: "{{ amiactive_output }}"
+
 - name: Get contents of "{{ amiactive_output }}"
   ansible.windows.win_shell: type "{{ amiactive_output }}"
   register: windows_rdbroker_active
