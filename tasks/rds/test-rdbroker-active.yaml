@@ -27,8 +27,8 @@
     state: present
 
 - name: Get contents of 'C:\temp\AmIActive.json'
-   ansible.windows.win_shell: type C:\temp\AmIActive.json
-   register: windows_rdbroker_active
+  ansible.windows.win_shell: type C:\temp\AmIActive.json
+  register: windows_rdbroker_active
 
 - debug:
     msg: "{{ windows_rdbroker_active.stdout | from_json }}"
