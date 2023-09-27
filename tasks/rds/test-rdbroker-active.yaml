@@ -1,33 +1,49 @@
 ---
 # This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
-# Unofrtunately due to limitations with remotely running the 'Get-RD'
+#
+# Unofrtunately due to limitations with remotely running the 'Get-RDConnectionBrokerHighAvailability' cmdlet, the command needs to be in a
+# powershell script, called as a Scheduled Task.
+#
+# The Ansible Module win_scheduled_task requires the 'community.windows' collection be installed, which is requires a custom execution environment
+# if you are running AWX in Kubernetes.  To keep it as easy as possible for anyone else to use, i have left the code there, but commented it out,
+# using a powershell script instead.
 
 - name: Remove 'AmIActive.json' file if present
   ansible.windows.win_file:
-    path: C:\temp\AmIActive.json
+    path: "{{ amiactive_output }}"
     state: absent
 
 - name: Copy Powershell script to "{{ inventory_hostname }}"
   ansible.windows.win_copy:
     src: scripts/rds/windows-rds-broker-active.ps1
-    dest: C:\Temp\windows-rds-broker-active.ps1
+    dest: "{{ amiactive_script }}"
 
-- name: Create 'AmIActive' Scheduled task
-  community.windows.win_scheduled_task:
-    name: RDBroker-AmIActive
-    username: "{{ winrm_username }}"
-    password: "{{ winrm_password }}"
-    logon_type: password
-    actions:
-    - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-      arguments: -ExecutionPolicy bypass -NonInteractive -NoLogo -File C:\temp\windows-rds-broker-active.ps1
-    run_level: highest
-    triggers:
-    - type: registration
-    state: present
+## Requires Ansible 'community.windows' collection
+#- name: Create 'AmIActive' Scheduled task
+#  community.windows.win_scheduled_task:
+#    name: RDBroker-AmIActive
+#    username: "{{ winrm_username }}"
+#    password: "{{ winrm_password }}"
+#    logon_type: password
+#    actions:
+#    - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+#      arguments: -ExecutionPolicy bypass -NonInteractive -NoLogo -File "{{ amiactive_script }}"
+#    run_level: highest
+#    triggers:
+#    - type: registration
+#    state: present
 
-- name: Get contents of 'C:\temp\AmIActive.json'
-  ansible.windows.win_shell: type C:\temp\AmIActive.json
+- name: Check to see if Current RD Broker Server is active
+  ansible.windows.win_shell: |
+    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-executionpolicy bypass -NonInteractive -NoLogo -file {{ amiactive_script }}"
+    $principal = New-ScheduledTaskPrincipal -UserId "{{ winrm_username }}" -RunLevel Highest -LogonType Password
+    $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -WakeToRun
+    $task = new-ScheduledTask -Action $action -Principal $principal -Settings $settings
+    Register-ScheduledTask RDBroker-AmIActive5 -InputObject $task -User "{{ winrm_username }}" -Password "{{ winrm_password }}"
+  register: windows_rdbroker_active
+
+- name: Get contents of "{{ amiactive_output }}"
+  ansible.windows.win_shell: type "{{ amiactive_output }}"
   register: windows_rdbroker_active
 
 - debug:
@@ -41,8 +57,9 @@
     msg: "RD Broker Server Check Failed."
   when: (windows_rdbroker_active.stdout | from_json)['error'] != ""
 
-- name: Create 'AmIActive' Scheduled task
-  community.windows.win_scheduled_task:
-    name: RDBroker-AmIActive
-    state: absent
+## Requires Ansible 'community.windows' collection
+#- name: Delete 'AmIActive' Scheduled task
+#  community.windows.win_scheduled_task:
+#    name: RDBroker-AmIActive
+#    state: absent
 

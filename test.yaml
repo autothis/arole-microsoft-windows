@@ -14,3 +14,6 @@
 
     - name: Confirm AG Health
       include_tasks: tasks/rds/test-rdbroker-active.yaml
+      vars:
+        amiactive_script: 'C:\temp\windows-rds-broker-active.ps1'
+        amiactive_output: 'C:\temp\AmIActive.json'
