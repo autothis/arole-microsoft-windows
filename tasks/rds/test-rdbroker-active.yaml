@@ -33,14 +33,18 @@
 #    - type: registration
 #    state: present
 
-- name: Check to see if Current RD Broker Server is active
+- name: Create 'AmIActive' Scheduled task
   ansible.windows.win_shell: |
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-executionpolicy bypass -NonInteractive -NoLogo -file {{ amiactive_script }}"
     $principal = New-ScheduledTaskPrincipal -UserId "{{ winrm_username }}" -RunLevel Highest -LogonType Password
     $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -WakeToRun
+    $trigger = 
     $task = new-ScheduledTask -Action $action -Principal $principal -Settings $settings
-    Register-ScheduledTask RDBroker-AmIActive5 -InputObject $task -User "{{ winrm_username }}" -Password "{{ winrm_password }}"
-  register: windows_rdbroker_active
+    Register-ScheduledTask "{{ amiactive_task }}" -InputObject $task -User "{{ winrm_username }}" -Password "{{ winrm_password }}"
+
+- name: Run 'AmIActive' Scheduled task
+  ansible.windows.win_shell: |
+    Start-ScheduledTask -TaskName "{{ amiactive_task }}"
 
 - name: Get contents of "{{ amiactive_output }}"
   ansible.windows.win_shell: type "{{ amiactive_output }}"
