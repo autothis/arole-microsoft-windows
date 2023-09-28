@@ -54,6 +54,9 @@
 - name: Run "{{ rdbrokerfailover_task }}" Scheduled task
   ansible.windows.win_shell: |
     Start-ScheduledTask -TaskName "{{ rdbrokerfailover_task }}"
+    while ((Get-ScheduledTaskInfo -TaskName "{{ rdbrokerfailover_task }}").LastTaskResult -ne 0) {
+      Write-Host "Waiting for scheduled task {{ rdbrokerfailover_task }} to finish running."
+      }
 
 ## Requires Ansible 'community.windows' collection
 #- name: Delete "{{ rdbrokerfailover_task }}" Scheduled task

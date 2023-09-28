@@ -32,5 +32,3 @@
 # Failover Broker
 
     Set-RDActiveManagementServer -ManagementServer (Get-AvailableBroker)
-
-	sleep 30
