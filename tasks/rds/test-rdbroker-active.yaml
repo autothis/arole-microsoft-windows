@@ -11,7 +11,12 @@
 
 - name: Delete 'AmIActive' Scheduled task
   ansible.windows.win_shell: |
-    Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
+    $ScheduledTask = Get-ScheduledTask | Where-Object {$_.TaskName -like "{{ amiactive_task }}" }
+    if($ScheduledTask) {
+      Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
+    } else {
+      Write-Host "Scheduled task {{ amiactive_task }} doesnt exist, no action required."
+    }
 
 - name: Remove 'AmIActive.json' file if present
   ansible.windows.win_file:
