@@ -47,6 +47,7 @@
 
 - debug:
     msg: "{{ windows_rdbroker_after.stdout }}"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
 
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
