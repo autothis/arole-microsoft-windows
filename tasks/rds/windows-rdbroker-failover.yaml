@@ -11,6 +11,10 @@
     msg: "RD Broker Server Check Failed."
   when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "Failed"
 
+- name: Check to see if Current RD Broker Server is active
+  include_tasks: tasks/rds/failover-rdbroker.yaml
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
+
 #- name: If current RD Broker Server is active, failover
 #  ansible.windows.win_shell: |
 #    Import-Module RemoteDesktop
