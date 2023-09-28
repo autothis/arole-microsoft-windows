@@ -20,5 +20,3 @@
         amiactive_task: 'RDBroker-AmIActive'
         rdbrokerfailover_script: 'C:\temp\windows-rds-broker-failover.ps1'
         rdbrokerfailover_task: 'RDBroker-Failover'
-        failover_check_var: 1
-        failover_check_limit: 10
