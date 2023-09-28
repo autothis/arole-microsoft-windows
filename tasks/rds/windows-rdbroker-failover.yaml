@@ -11,9 +11,12 @@
     msg: "RD Broker Server Check Failed."
   when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "Failed"
 
-- name: Check to see if Current RD Broker Server is active
+- name: Failover RD Broker
   include_tasks: tasks/rds/failover-rdbroker.yaml
   when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
+
+- debug:
+    msg: "{{ windows_rdbroker_before.stdout }}"
 
 #- name: If current RD Broker Server is active, failover
 #  ansible.windows.win_shell: |
@@ -31,7 +34,7 @@
 #    Set-RDActiveManagementServer -ManagementServer (Get-AvailableBroker)
 #  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
 
-- name: Check to see if active RD Broker Server has changed
+- name: Check to see if active RD Broker Server has changed after Failover
   include_tasks: tasks/rds/test-rdbroker-active.yaml
   vars:
     amiactive_runtype: 'after'
@@ -42,6 +45,8 @@
       delay: 30
   when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
 
+- debug:
+    msg: "{{ windows_rdbroker_after.stdout }}"
 
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
