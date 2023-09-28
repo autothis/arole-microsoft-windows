@@ -20,4 +20,4 @@
         amiactive_task: 'RDBroker-AmIActive'
     
     - debug:
-      msg: "{{ (windows_rdbroker_active.stdout | from_json)['amiactive'] }}"
+        msg: "{{ (windows_rdbroker_active.stdout | from_json)['amiactive'] }}"
