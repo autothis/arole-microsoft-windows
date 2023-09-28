@@ -13,6 +13,11 @@
     path: "{{ amiactive_output }}"
     state: absent
 
+- name: Remove 'windows-rds-broker-active.ps1' file if present
+  ansible.windows.win_file:
+    path: "{{ amiactive_script }}"
+    state: absent
+
 - name: Copy Powershell script to "{{ inventory_hostname }}"
   ansible.windows.win_copy:
     src: scripts/rds/windows-rds-broker-active.ps1
@@ -52,14 +57,14 @@
 
 - name: Get contents of "{{ amiactive_output }}"
   ansible.windows.win_shell: type "{{ amiactive_output }}"
-  register: windows_rdbroker_active
+  register: "windows_rdbroker_{{ amiactive_runtype }}"
 
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
     msg:
     - "RD Broker Server Check Failed."
     - windows_rdbroker_active.stdout | from_json
-  when: (windows_rdbroker_active.stdout | from_json)['amiactive'] == "Failed"
+  when: (windows_rdbroker_{{ amiactive_runtype }}.stdout | from_json)['amiactive'] == "Failed"
 
 ## Requires Ansible 'community.windows' collection
 #- name: Delete 'AmIActive' Scheduled task
