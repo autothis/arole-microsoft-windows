@@ -31,9 +31,11 @@
   include_tasks: tasks/rds/test-rdbroker-active.yaml
   vars:
     amiactive_runtype: 'after'
-  register: windows_rdbroker_stillactive
-  when: windows_rdbroker_before.stdout | trim == "True"
-  until: windows_rdbroker_after.stdout | trim == "False"
+  args:
+    apply:
+      until:
+        - (windows_rdbroker_after.stdout | from_json)['amiactive'] == "False"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
   retries: 10
   delay: 30
 
@@ -41,5 +43,5 @@
   fail:
     msg: "RD Broker Server Check Failed."
   when:
-    - windows_rdbroker_before.stdout | trim == "True"
-    - windows_rdbroker_after.stdout | trim == "Failed"
+    - (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
+    - (windows_rdbroker_after.stdout | from_json)['amiactive'] == "Failed"
