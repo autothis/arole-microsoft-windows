@@ -9,11 +9,11 @@
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
     msg: "RD Broker Server Check Failed."
-  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "Failed"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "failed"
 
 - name: Failover RD Broker
   include_tasks: tasks/rds/failover-rdbroker.yaml
-  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
 
 - debug:
     msg: "{{ windows_rdbroker_before.stdout }}"
@@ -40,18 +40,18 @@
     amiactive_runtype: 'after'
   args:
     apply:
-      until: (windows_rdbroker_after.stdout | from_json)['amiactive'] == "False"
+      until: (windows_rdbroker_after.stdout | from_json)['amiactive'] | lower == "false"
       retries: 10
       delay: 30
-  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "frue"
 
 - debug:
     msg: "{{ windows_rdbroker_after.stdout }}"
-  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
 
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
     msg: "RD Broker Server Check Failed."
   when:
-    - (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
-    - (windows_rdbroker_after.stdout | from_json)['amiactive'] == "Failed"
+    - (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+    - (windows_rdbroker_after.stdout | from_json)['amiactive'] | lower == "failed"

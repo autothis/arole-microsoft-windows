@@ -78,7 +78,7 @@
     msg:
     - "RD Broker Server Check Failed."
     - windows_rdbroker_active.stdout | from_json
-  when: (result.stdout | from_json)['amiactive'] == "Failed"
+  when: (result.stdout | from_json)['amiactive'] | lower == "failed"
 
 ## Requires Ansible 'community.windows' collection
 #- name: Delete 'AmIActive' Scheduled task
