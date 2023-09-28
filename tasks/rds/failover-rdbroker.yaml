@@ -1,0 +1,66 @@
+---
+# This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
+#
+# Unofrtunately due to limitations with remotely running the 'Get-RDConnectionBrokerHighAvailability' cmdlet, the command needs to be in a
+# powershell script, called as a Scheduled Task.
+#
+# The Ansible Module win_scheduled_task requires the 'community.windows' collection be installed, which is requires a custom execution environment
+# if you are running AWX in Kubernetes.  To keep it as easy as possible for anyone else to use, i have left the code there, but commented it out,
+# using a powershell script instead.
+
+
+- name: Delete "{{ rdbrokerfailover_task }}" Scheduled task
+  ansible.windows.win_shell: |
+    $ScheduledTask = Get-ScheduledTask | Where-Object {$_.TaskName -like "{{ rdbrokerfailover_task }}" }
+    if($ScheduledTask) {
+      Unregister-ScheduledTask -TaskName "{{ rdbrokerfailover_task }}" -Confirm:$false
+    } else {
+      Write-Host "Scheduled task {{ rdbrokerfailover_task }} doesnt exist, no action required."
+    }
+
+- name: Remove "{{ rdbrokerfailover_script }}" file if present
+  ansible.windows.win_file:
+    path: "{{ rdbrokerfailover_script }}"
+    state: absent
+
+- name: Copy Powershell script to "{{ inventory_hostname }}"
+  ansible.windows.win_copy:
+    src: scripts/rds/windows-rds-broker-failover.ps1
+    dest: "{{ rdbrokerfailover_script }}"
+
+## Requires Ansible 'community.windows' collection
+#- name: Create "{{ rdbrokerfailover_task }}" Scheduled task
+#  community.windows.win_scheduled_task:
+#    name: "{{ rdbrokerfailover_task }}"
+#    username: "{{ winrm_username }}"
+#    password: "{{ winrm_password }}"
+#    logon_type: password
+#    actions:
+#    - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+#      arguments: -ExecutionPolicy bypass -NonInteractive -NoLogo -File "{{ rdbrokerfailover_script }}"
+#    run_level: highest
+#    triggers:
+#    - type: registration
+#    state: present
+
+- name: Create "{{ rdbrokerfailover_task }}" Scheduled task
+  ansible.windows.win_shell: |
+    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-executionpolicy bypass -NonInteractive -NoLogo -file {{ rdbrokerfailover_script }}"
+    $principal = New-ScheduledTaskPrincipal -UserId "{{ winrm_username }}" -RunLevel Highest -LogonType Password
+    $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -WakeToRun
+    $task = new-ScheduledTask -Action $action -Principal $principal -Settings $settings
+    Register-ScheduledTask "{{ rdbrokerfailover_task }}" -InputObject $task -User "{{ winrm_username }}" -Password "{{ winrm_password }}"
+
+- name: Run "{{ rdbrokerfailover_task }}" Scheduled task
+  ansible.windows.win_shell: |
+    Start-ScheduledTask -TaskName "{{ rdbrokerfailover_task }}"
+
+## Requires Ansible 'community.windows' collection
+#- name: Delete "{{ rdbrokerfailover_task }}" Scheduled task
+#  community.windows.win_scheduled_task:
+#    name: "{{ rdbrokerfailover_task }}"
+#    state: absent
+
+- name: Delete "{{ rdbrokerfailover_task }}" Scheduled task
+  ansible.windows.win_shell: |
+    Unregister-ScheduledTask -TaskName "{{ rdbrokerfailover_task }}" -Confirm:$false

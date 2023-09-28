@@ -18,11 +18,3 @@
         amiactive_script: 'C:\temp\windows-rds-broker-active.ps1'
         amiactive_output: 'C:\temp\AmIActive.json'
         amiactive_task: 'RDBroker-AmIActive'
-    
-    - debug:
-        #msg: (windows_rdbroker_before.stdout | from_json)['amiactive']
-        msg: "{{ windows_rdbroker_before }}"
-
-    - debug:
-        #msg: (windows_rdbroker_after.stdout | from_json)['amiactive']
-        msg: "{{ windows_rdbroker_after }}"

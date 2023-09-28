@@ -53,7 +53,6 @@
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-executionpolicy bypass -NonInteractive -NoLogo -file {{ amiactive_script }}"
     $principal = New-ScheduledTaskPrincipal -UserId "{{ winrm_username }}" -RunLevel Highest -LogonType Password
     $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -WakeToRun
-    $trigger = 
     $task = new-ScheduledTask -Action $action -Principal $principal -Settings $settings
     Register-ScheduledTask "{{ amiactive_task }}" -InputObject $task -User "{{ winrm_username }}" -Password "{{ winrm_password }}"
 
