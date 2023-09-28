@@ -43,7 +43,7 @@
       until: (windows_rdbroker_after.stdout | from_json)['amiactive'] | lower == "false"
       retries: 10
       delay: 30
-  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "frue"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
 
 - debug:
     msg: "{{ windows_rdbroker_after.stdout }}"
