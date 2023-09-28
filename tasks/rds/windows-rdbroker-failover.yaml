@@ -38,12 +38,10 @@
   include_tasks: tasks/rds/test-rdbroker-active.yaml
   vars:
     amiactive_runtype: 'after'
-  args:
-    apply:
-      until: (windows_rdbroker_after.stdout | from_json)['amiactive'] | lower == "false"
-      retries: 10
-      delay: 30
-  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+  loop: "{{ range(0, failover_check_limit)|list }}"
+  when:
+    - (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+    - (windows_rdbroker_after.stdout | from_json)['amiactive'] | lower == "false"
 
 - debug:
     msg: "{{ windows_rdbroker_after.stdout }}"
