@@ -54,24 +54,19 @@
   ansible.windows.win_shell: type "{{ amiactive_output }}"
   register: windows_rdbroker_active
 
-- debug:
-    msg: "{{ windows_rdbroker_active.stdout | from_json }}"
-
-- debug:
-    msg: "{{ (windows_rdbroker_active.stdout | from_json)['error'] }}"
-
 - name: Fail Ansible Play if RD Broker Server Check Fails
   fail:
-    msg: "RD Broker Server Check Failed."
-  when: (windows_rdbroker_active.stdout | from_json)['error'] | length > 0
-
-- name: Create 'AmIActive' Scheduled task
-  ansible.windows.win_shell: |
-    Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
+    msg:
+    - "RD Broker Server Check Failed."
+    - windows_rdbroker_active.stdout | from_json
+  when: (windows_rdbroker_active.stdout | from_json)['amiactive'] == "Failed"
 
 ## Requires Ansible 'community.windows' collection
 #- name: Delete 'AmIActive' Scheduled task
 #  community.windows.win_scheduled_task:
-#    name: RDBroker-AmIActive
+#    name: "{{ amiactive_task }}"
 #    state: absent
 
+- name: Delete 'AmIActive' Scheduled task
+  ansible.windows.win_shell: |
+    Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
