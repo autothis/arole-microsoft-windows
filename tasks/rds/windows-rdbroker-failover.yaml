@@ -1,0 +1,55 @@
+---
+# This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
+
+- name: Check to see if Current RD Broker Server is active
+  include_tasks: tasks/rds/test-rdbroker-active.yaml
+  vars:
+    amiactive_runtype: 'before'
+
+- name: Current State
+  ansible.builtin.debug:
+    msg: "{{ windows_rdbroker_before.stdout }}"
+
+- name: Fail Ansible Play if RD Broker Server Check Fails
+  ansible.builtin.fail:
+    msg: "RD Broker Server Check Failed."
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "failed"
+
+- name: Failover RD Broker
+  include_tasks: tasks/rds/failover-rdbroker.yaml
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+
+#- name: If current RD Broker Server is active, failover
+#  ansible.windows.win_shell: |
+#    Import-Module RemoteDesktop
+#    Function Get-AvailableBroker {
+#      $CurrentFQDN = [System.Net.Dns]::GetHostByName($env:computerName).HostName
+#      $Brokers = (Get-RDConnectionBrokerHighAvailability).ConnectionBroker
+#      $AvailableBrokers = @()
+#      foreach ($Broker in ($Brokers | where {$_ -ne $CurrentFQDN})) {
+#        $AvailableBrokers += $Broker
+#        }
+#      Write-Output $AvailableBrokers[0]
+#      }
+#    
+#    Set-RDActiveManagementServer -ManagementServer (Get-AvailableBroker)
+#  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] == "True"
+
+- name: Check to see if active RD Broker Server has changed after Failover
+  include_tasks: tasks/rds/test-rdbroker-active.yaml
+  vars:
+    amiactive_runtype: 'after'
+  #loop: "{{ range(0, failover_check_limit)|list }}"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+
+- name: After Failover State
+  ansible.builtin.debug:
+    msg: "{{ windows_rdbroker_after.stdout }}"
+  when: (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+
+- name: Fail Ansible Play if RD Broker Server Check Fails
+  ansible.builtin.fail:
+    msg: "RD Broker Server Check Failed."
+  when:
+    - (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+    - (windows_rdbroker_after.stdout | from_json)['amiactive'] | lower == "failed"

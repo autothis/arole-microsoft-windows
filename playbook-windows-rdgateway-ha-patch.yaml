@@ -42,22 +42,22 @@
 
 - name: Microsoft RD Gateway Server Patching (HA)
   hosts: all
+  vars:
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
+    ansible_port: "{{ connection_port }}"
+    ansible_connection: "{{ connection_type }}"
+    ansible_winrm_transport: "{{ connection_transport }}"
+    ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
   gather_facts: false
   serial: 1
   tasks:
 
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
-      vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
 
     - name: Confirm Ansible can load RD Gateway Web Service
-      include_tasks: tasks/test-rdgateway-url.yaml
+      include_tasks: tasks/rds/test-rdgateway-url.yaml
 
     - name: Disable Real Server
       ansible.builtin.script:
@@ -69,6 +69,7 @@
         kemp_api_username: "{{ kemp_username }}"
         kemp_api_password: "{{ kemp_password }}"
         kemp_real_server_ip: "{{ real_server_ip }}"
+        ansible_connection: local
       register: disable_real_server
 
     - debug:
@@ -88,14 +89,8 @@
 #        real_server_ip: "{{ real_server_ip }}"
 
     - name: Install all available windows update
-      include_tasks: tasks/windows-update-all.yaml
+      include_tasks: tasks/patching/windows-update-all.yaml
       vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
         ansible_winrm_connection_timeout: 1200
         wsus: default
 
@@ -112,19 +107,13 @@
         password: "{{ vm_vcenter_password }}"
         name: "{{ vm_name }}"
         vm_validate_certs: false
+        ansible_connection: local
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml
-      vars:
-        ansible_user: "{{ winrm_username }}"
-        ansible_password: "{{ winrm_password }}"
-        ansible_port: "{{ connection_port }}"
-        ansible_connection: "{{ connection_type }}"
-        ansible_winrm_transport: "{{ connection_transport }}"
-        ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
     
     - name: Confirm Ansible can load RD Gateway Web Service
-      include_tasks: tasks/test-rdgateway-url.yaml      
+      include_tasks: tasks/rds/test-rdgateway-url.yaml      
 
     - name: Enable Real Server
       ansible.builtin.script:
@@ -136,6 +125,7 @@
         kemp_api_username: "{{ kemp_username }}"
         kemp_api_password: "{{ kemp_password }}"
         kemp_real_server_ip: "{{ real_server_ip }}"
+        ansible_connection: local
       register: enable_real_server
 
     - debug:

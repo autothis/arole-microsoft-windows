@@ -1,0 +1,99 @@
+---
+# This task will failover to a different RD Broker (Management Server) in the event that the current host is Active"
+#
+# Unofrtunately due to limitations with remotely running the 'Get-RDConnectionBrokerHighAvailability' cmdlet, the command needs to be in a
+# powershell script, called as a Scheduled Task.
+#
+# The Ansible Module win_scheduled_task requires the 'community.windows' collection be installed, which is requires a custom execution environment
+# if you are running AWX in Kubernetes.  To keep it as easy as possible for anyone else to use, i have left the code there, but commented it out,
+# using a powershell script instead.
+
+
+- name: Delete 'AmIActive' Scheduled task
+  ansible.windows.win_shell: |
+    $ScheduledTask = Get-ScheduledTask | Where-Object {$_.TaskName -like "{{ amiactive_task }}" }
+    if($ScheduledTask) {
+      Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
+    } else {
+      Write-Host "Scheduled task {{ amiactive_task }} doesnt exist, no action required."
+    }
+
+- name: Remove 'AmIActive.json' file if present
+  ansible.windows.win_file:
+    path: "{{ amiactive_output }}"
+    state: absent
+
+- name: Remove 'windows-rds-broker-active.ps1' file if present
+  ansible.windows.win_file:
+    path: "{{ amiactive_script }}"
+    state: absent
+
+- name: Copy Powershell script to "{{ inventory_hostname }}"
+  ansible.windows.win_copy:
+    src: scripts/rds/windows-rds-broker-active.ps1
+    dest: "{{ amiactive_script }}"
+
+## Requires Ansible 'community.windows' collection
+#- name: Create 'AmIActive' Scheduled task
+#  community.windows.win_scheduled_task:
+#    name: RDBroker-AmIActive
+#    username: "{{ winrm_username }}"
+#    password: "{{ winrm_password }}"
+#    logon_type: password
+#    actions:
+#    - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+#      arguments: -ExecutionPolicy bypass -NonInteractive -NoLogo -File "{{ amiactive_script }}"
+#    run_level: highest
+#    triggers:
+#    - type: registration
+#    state: present
+
+- name: Create 'AmIActive' Scheduled task
+  ansible.windows.win_shell: |
+    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-executionpolicy bypass -NonInteractive -NoLogo -file {{ amiactive_script }}"
+    $principal = New-ScheduledTaskPrincipal -UserId "{{ winrm_username }}" -RunLevel Highest -LogonType Password
+    $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -WakeToRun
+    $task = new-ScheduledTask -Action $action -Principal $principal -Settings $settings
+    Register-ScheduledTask "{{ amiactive_task }}" -InputObject $task -User "{{ winrm_username }}" -Password "{{ winrm_password }}"
+
+- name: Run 'AmIActive' Scheduled task
+  ansible.windows.win_shell: |
+    Start-ScheduledTask -TaskName "{{ amiactive_task }}"
+
+- name: Wait for file "{{ amiactive_output }}" to exist before continuing
+  ansible.windows.win_wait_for:
+    path: "{{ amiactive_output }}"
+
+- name: Get contents of "{{ amiactive_output }}"
+  ansible.windows.win_shell: type "{{ amiactive_output }}"
+  register: result
+
+# This step is required, because register does not support variables (example: "windows_rdbroker_{{ amiactive_runtype }}")
+- name: Register "windows_rdbroker_{{ amiactive_runtype }}"
+  ansible.builtin.set_fact:
+    "windows_rdbroker_{{ amiactive_runtype }}": "{{ result }}"
+
+- name: Fail Ansible Play if RD Broker Server Check Fails
+  ansible.builtin.fail:
+    msg:
+    - "RD Broker Server Check Failed."
+    - windows_rdbroker_active.stdout | from_json
+  when: (result.stdout | from_json)['amiactive'] | lower == "failed"
+
+## Requires Ansible 'community.windows' collection
+#- name: Delete 'AmIActive' Scheduled task
+#  community.windows.win_scheduled_task:
+#    name: "{{ amiactive_task }}"
+#    state: absent
+
+- name: Delete 'AmIActive' Scheduled task
+  ansible.windows.win_shell: |
+    Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
+
+## This is done because include_tasks does not support until loops
+#- name: Increment Count for 'after' Failover Check
+#  set_fact:
+#    test_var: "{{ failover_check_var | int + 1  }} "
+#  when:
+#    - failover_check_var|int < failover_check_limit|int
+#    - (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"

@@ -16,28 +16,28 @@
       include_tasks: tasks/test-communication.yaml
 
     - name: Confirm AG Health
-      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-cluster-healthcheck.yaml
 
     - name: Confirm AG Replica Node Health
-      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-replica-healthcheck.yaml
 
     - name: Confirm AG Database Health
-      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-database-healthcheck.yaml
 
     - name: Is Failover Required for Current SQL AG Replica Node
-      include_tasks: tasks/windows-sql-ag-failover-check.yaml
+      include_tasks: tasks/sql/windows-sql-ag-failover-check.yaml
 
     - name: Is Failover Current SQL AG Replica Node if Required
-      include_tasks: tasks/windows-sql-ag-failover-node.yaml
+      include_tasks: tasks/sql/windows-sql-ag-failover-node.yaml
       when: sql_current_replica['failover_required'] | trim == 'True'
 
     - name: Suspend SQL data movement
       vars:
         data_movement_action: "suspend"
-      include_tasks: tasks/windows-sql-ag-data-movement.yaml
+      include_tasks: tasks/sql/windows-sql-ag-data-movement.yaml
 
     - name: Install all available windows update
-      include_tasks: tasks/windows-update-all.yaml
+      include_tasks: tasks/patching/windows-update-all.yaml
       vars:
         ansible_winrm_operation_timeout_sec: 300
         ansible_winrm_read_timeout_sec: 301
@@ -64,13 +64,13 @@
     - name: Resume SQL data movement
       vars:
         data_movement_action: "resume"
-      include_tasks: tasks/windows-sql-ag-data-movement.yaml
+      include_tasks: tasks/sql/windows-sql-ag-data-movement.yaml
     
     - name: Confirm AG Health
-      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-cluster-healthcheck.yaml
 
     - name: Confirm AG Replica Node Health
-      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-replica-healthcheck.yaml
 
     - name: Confirm AG Database Health
-      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
+      include_tasks: tasks/sql/windows-sql-ag-database-healthcheck.yaml

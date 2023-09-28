@@ -21,9 +21,6 @@
 #      WinRM Credentials:
 #        winrm_username: winrm@YOURDOMAIN.COM
 #        winrm_password: insertpasswordhere
-#      vCenter Credentials:
-#        vm_vcenter_username" vcenter@yourdomain.com
-#        vm_vcenter_password: insertpasswordhere
 #
 #    Optional Playbook Requirements:
 #      Kerberos:
@@ -34,10 +31,6 @@
 #       The error occurs because of the WinRM users profile.
 #       Delete the profile from the Windows Server (cleanly through 'User Prfole Settings').
 #       Then log into the machine to initialize the user profile (running a remote command does not seem to be enough).
-#
-#    2: The 'win_updates' Ansible Module has some known issues where it hangs and times out.
-#       Sometimes restarting the play and/or rebooting the inventory host fixes the issue, but not always.
-#         ref: https://github.com/ansible-collections/ansible.windows/issues/516
 
 - name: Microsoft RD Broker Server Patching (HA)
   hosts: all
@@ -64,26 +57,10 @@
         rdbrokerfailover_script: 'C:\temp\windows-rds-broker-failover.ps1'
         rdbrokerfailover_task: 'RDBroker-Failover'
 
-    - name: Install all available windows update
-      include_tasks: tasks/patching/windows-update-all.yaml
+    - name: Reboot
+      include_tasks: tasks/windows-reboot.yaml
       vars:
         ansible_winrm_connection_timeout: 1200
-        wsus: default
-
-    - name: If required update VMTools
-      include_role:
-        name: arole_vmware
-        tasks_from: vmware-update-tools.yaml
-        apply:
-          delegate_to: localhost
-      vars:
-        hostname: "{{ vm_vcenter }}"
-        datacenter: "{{ vm_datacenter }}"
-        username: "{{ vm_vcenter_username }}"
-        password: "{{ vm_vcenter_password }}"
-        name: "{{ vm_name }}"
-        vm_validate_certs: false
-        ansible_connection: local
 
     - name: Confirm Ansible can communicate with the patched hosts
       include_tasks: tasks/test-communication.yaml

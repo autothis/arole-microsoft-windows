@@ -1,0 +1,22 @@
+---
+- name: Test Playbook
+  hosts: all
+  vars:
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
+    ansible_port: "{{ connection_port }}"
+    ansible_connection: "{{ connection_type }}"
+    ansible_winrm_transport: "{{ connection_transport }}"
+    ansible_winrm_server_cert_validation: "{{ connection_cert_validation }}"
+  gather_facts: false
+  serial: 1
+  tasks:
+
+    - name: Confirm AG Health
+      include_tasks: tasks/rds/windows-rdbroker-failover.yaml
+      vars:
+        amiactive_script: 'C:\temp\windows-rds-broker-active.ps1'
+        amiactive_output: 'C:\temp\AmIActive.json'
+        amiactive_task: 'RDBroker-AmIActive'
+        rdbrokerfailover_script: 'C:\temp\windows-rds-broker-failover.ps1'
+        rdbrokerfailover_task: 'RDBroker-Failover'
