@@ -57,19 +57,19 @@
 
 - name: Get contents of "{{ amiactive_output }}"
   ansible.windows.win_shell: type "{{ amiactive_output }}"
-  register: results
+  register: result
 
 # This step is required, because register does not support variables (example: "windows_rdbroker_{{ amiactive_runtype }}")
 - name: Register "windows_rdbroker_{{ amiactive_runtype }}"
   ansible.builtin.set_fact:
-    "windows_rdbroker_{{ amiactive_runtype }}": "{{ results }}"
+    "windows_rdbroker_{{ amiactive_runtype }}": "{{ result }}"
 
 - name: Fail Ansible Play if RD Broker Server Check Fails
   ansible.builtin.fail:
     msg:
     - "RD Broker Server Check Failed."
     - windows_rdbroker_active.stdout | from_json
-  when: (windows_rdbroker_{{ amiactive_runtype }}.stdout | from_json)['amiactive'] == "Failed"
+  when: (result.stdout | from_json)['amiactive'] == "Failed"
 
 ## Requires Ansible 'community.windows' collection
 #- name: Delete 'AmIActive' Scheduled task
