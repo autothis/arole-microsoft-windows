@@ -90,10 +90,10 @@
   ansible.windows.win_shell: |
     Unregister-ScheduledTask -TaskName "{{ amiactive_task }}" -Confirm:$false
 
-# This is done because include_tasks does not support until loops
-- name: Increment Count for 'after' Failover Check
-  set_fact:
-    test_var: "{{ failover_check_var | int + 1  }} "
-  when:
-    - failover_check_var|int < failover_check_limit|int
-    - (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
+## This is done because include_tasks does not support until loops
+#- name: Increment Count for 'after' Failover Check
+#  set_fact:
+#    test_var: "{{ failover_check_var | int + 1  }} "
+#  when:
+#    - failover_check_var|int < failover_check_limit|int
+#    - (windows_rdbroker_before.stdout | from_json)['amiactive'] | lower == "true"
