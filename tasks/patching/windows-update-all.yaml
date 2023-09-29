@@ -10,10 +10,11 @@
 - name: Install Windows updates
   ansible.windows.win_updates:
     category_names: '*'
-    #server_selection: "{{ wsus }}"
+    reject_list: "{{ reject_updates }}"
+    server_selection: "{{ wsus }}"
     reboot: yes
     reboot_timeout: 1200
-    #log_path: c:\programdata\ansible_patchlog.log
+    log_path: c:\programdata\ansible_patchlog.log
   become: yes
   become_method: runas
   become_user: "{{ ansible_user }}"
