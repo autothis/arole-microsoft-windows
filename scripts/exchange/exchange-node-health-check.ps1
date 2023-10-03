@@ -23,7 +23,7 @@
 # Import Required Powershell Modules and SnapIns
 
     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://$($SystemHostname)/PowerShell/ -Authentication Kerberos -Credential $credObject
-    Import-PSSession $Session -DisableNameChecking
+    $CreateSession = Import-PSSession $Session -DisableNameChecking
     #Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn
 
 # Gather Data
@@ -76,6 +76,7 @@
 # Format Results in JSON
     
     $ExchangeNodeHealth = [PSCustomObject]@{
+      session = $CreateSession
       noda_state = $NodeState
       service_health = $ServiceHealth
       replication_health = $ReplicationHealth
