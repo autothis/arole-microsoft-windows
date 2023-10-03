@@ -1,12 +1,28 @@
+# Param
+
+    Param
+    (
+      [Parameter(Mandatory)]
+      [string[]]$Username,
+
+      [Parameter(Mandatory)]
+      [string[]]$Password
+    )
+
 # Initalise Variables
 
     $SystemHostname = (hostname).ToString()
     $ErrorActionPreference = 'Stop'
     $MailboxDatabaseCopyStatus = @()
+    
+# Create Credential Object
+
+    [securestring]$secStringPassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    [pscredential]$credObject = New-Object System.Management.Automation.PSCredential ($Username, $secStringPassword)
 
 # Import Required Powershell Modules and SnapIns
 
-    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://$($SystemHostname)/PowerShell/ -Authentication Kerberos -Credential $creds
+    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://$($SystemHostname)/PowerShell/ -Authentication Kerberos -Credential $credObject
     Import-PSSession $Session -DisableNameChecking
     #Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn
 
@@ -43,9 +59,9 @@
                 ContentIndexState = $DatabaseCopyStatus.ContentIndexState;
                 CopyQueueLength = $DatabaseCopyStatus.CopyQueueLength;
                 ReplayqueueLength = $DatabaseCopyStatus.ReplayqueueLength;
+                }
             }
         }
-    }
     $MailboxDatabaseCopyStatus | Select Name,Server,Status,ContentIndexState,CopyQueueLength,ReplayqueueLength | Sort-Object Name
         # I need:
         #   $mailboxcopystatus.status to be Mounted or Healthy
