@@ -3,10 +3,10 @@
     Param
     (
       [Parameter(Mandatory)]
-      [string[]]$Username,
+      [string]$Username,
 
       [Parameter(Mandatory)]
-      [string[]]$Password
+      [string]$Password
     )
 
 # Initalise Variables
