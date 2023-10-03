@@ -1,4 +1,5 @@
 ---
+# WinRM account requires Exchange Permissions (Server Management or higher)
 - name: Microsoft Exchange Server Patching (HA)
   hosts: all
   vars:

@@ -1,12 +1,14 @@
-# Import Required Powershell Modules and SnapIns
-
-    Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn
-
 # Initalise Variables
 
     $SystemHostname = (hostname).ToString()
     $ErrorActionPreference = 'Stop'
     $MailboxDatabaseCopyStatus = @()
+
+# Import Required Powershell Modules and SnapIns
+
+    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://$($SystemHostname)/PowerShell/ -Authentication Kerberos -Credential $creds
+    Import-PSSession $Session -DisableNameChecking
+    #Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn
 
 # Gather Data
 
@@ -50,6 +52,10 @@
         #   $mailboxcopystatus.contentIndexState to be Healthy
         #   $mailboxcopystatus.CopyQueueLength to be less than 10
         #   $mailboxcopystatus.ReplayqueueLength to be less than 10
+
+# Cleanup Session
+
+    Remove-PSSession $Session
 
 # Format Results in JSON
     
