@@ -76,8 +76,7 @@
 # Format Results in JSON
     
     $ExchangeNodeHealth = [PSCustomObject]@{
-      session = $CreateSession
-      noda_state = $NodeState
+      node_state = $NodeState
       service_health = $ServiceHealth
       replication_health = $ReplicationHealth
       server_component_state = $ServerComponentState
