@@ -7,7 +7,11 @@
 
 - name: Parse 'exchange_node_health_check' as JSON and set fact
   set_fact:
-    sql_replicas_healthy: "{{ exchange_node_health_check.stdout | from_json }}"
+    exchange_node_health: "{{ exchange_node_health_check.stdout | from_json }}"
+
+- name: Exchange Node Health
+  ansible.builtin.debug:
+    msg: "{{ exchange_node_health }}"
 
 #- name: SQL Replicas Health Status
 #  ansible.builtin.debug:
