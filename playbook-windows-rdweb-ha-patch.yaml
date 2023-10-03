@@ -22,6 +22,7 @@
 #
 #    Credentials Variables Examples:
 #      WinRM Credentials:
+#        # Notice the capitalised domain.
 #        winrm_username: winrmuser@YOURDOMAIN.COM
 #        winrm_password: insertpasswordhere
 #      vCenter Credentials:
@@ -39,6 +40,17 @@
 #    1: The 'win_updates' Ansible Module has some known issues where it hangs and times out.
 #       Sometimes restarting the play and/or rebooting the inventory host fixes the issue, but not always.
 #         ref: https://github.com/ansible-collections/ansible.windows/issues/516
+#
+#    2: I would like to put the Kemp Management into its own Ansible Role at some point.
+#       I have left the (theoretical) code there (commented out) for once that is done, but in the mean time it is just a script.
+#
+#    3: The 'win_updates' Ansible Module has been stuggling with some Windows Updates getting stuck in an update looks.
+#       This seems to be a common issue in Windows, specifically with Defender upates (this is not an issue with Ansible, but with Windows).
+#       You may find you need to exclude these updates from this play.
+#       You can exclude updated by KB or Description by passing the following variable to the Ansible play:
+#         reject_updates:
+#           - KB2267602
+#           - '.*Defender.*'
 
 - name: Microsoft RD Web Server Patching (HA)
   hosts: all

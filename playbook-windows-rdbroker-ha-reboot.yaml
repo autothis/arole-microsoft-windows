@@ -19,6 +19,7 @@
 #
 #    Credentials Variables Examples:
 #      WinRM Credentials:
+#        # Notice the capitalised domain.
 #        winrm_username: winrm@YOURDOMAIN.COM
 #        winrm_password: insertpasswordhere
 #
@@ -27,10 +28,10 @@
 #        For Kerberos to work, you will need to create a '/etc/krb5.conf' file (see example-krb5.conf in Git Repo)
 #
 #  Known Issues:
-#    1: There seems to be some issues when running the Failover checks.
-#       The error occurs because of the WinRM users profile.
-#       Delete the profile from the Windows Server (cleanly through 'User Prfole Settings').
-#       Then log into the machine to initialize the user profile (running a remote command does not seem to be enough).
+#    1: There seems to be some issues when running "RemoteDesktop" Powershell module CMDLETS.
+#       These issues seem to be when the module is used in remote sessions (WinRM or Remote PSSessions).
+#       The unfortunate way i have worked around this issue (for now), is by creating, running and then deleting Scheduled Tasks.
+#       For some tasks the Scheduled Task will output a JSON file that Ansible will read, other tasks will be verified in a separate Ansible task.
 
 - name: Microsoft RD Broker Server Patching (HA)
   hosts: all
