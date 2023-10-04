@@ -9,9 +9,25 @@
   set_fact:
     exchange_node_health: "{{ exchange_node_health_check.stdout | from_json }}"
 
-- name: Exchange Node Health
-  ansible.builtin.debug:
-    msg: "{{ exchange_node_health }}"
+#- name: Exchange Node Health
+#  ansible.builtin.debug:
+#    msg: "{{ exchange_node_health }}"
+
+# Set fact Node State
+# Set fact all services running
+# Set fact services not running, if all services running !true
+# Set fact replication checks passed
+# Set fact replication checks that have failed, if replication checks passed !true
+# Set fact component state active
+# Set fact component state serverwideoffline if true
+#   Components expected to be inactive are 'ForwardSyncDaemon' & 'ProvisioningRps'
+# Set fact any databases mounted
+# Set fact all databases are healthy (active or mounted)
+# Set fact any indexstates not healthy
+# Set fact any copyqueuelengths above 10
+# Set fact any replayqueuelengths above 10
+# Set fact unhealthy databases if conditions above are !true
+
 
 #- name: Fail Ansible Play if Exchange Node State is not 'Up'
 #  fail:
