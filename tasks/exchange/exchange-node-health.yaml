@@ -13,6 +13,21 @@
   ansible.builtin.debug:
     msg: "{{ exchange_node_health }}"
 
+#- name: Fail Ansible Play if Exchange Node State is not 'Up'
+#  fail:
+#    msg:
+#    - "Exchange Node State is not 'Up'."
+#    - "{{ exchange_node_health }}"
+#  when:
+#    - not sql_replicas_healthy['sql_availability_group_replicas']
+#       | map(attribute='ConnectionState')
+#       | select('equalto', 'Connected')
+#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
+#    - not sql_replicas_healthy['sql_availability_group_replicas']
+#       | map(attribute='RollupSynchronizationState')
+#       | select('equalto', 'Synchronized')
+#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
+
 #- name: SQL Replicas Health Status
 #  ansible.builtin.debug:
 #    msg: "SQL Replicas Health Check on {{ ansible_host }} was Successful"

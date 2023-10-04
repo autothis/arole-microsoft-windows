@@ -14,6 +14,7 @@
     $SystemHostname = (hostname).ToString()
     $ErrorActionPreference = 'Stop'
     $MailboxDatabaseCopyStatus = @()
+    $NodeState = @()
     
 # Create Credential Object
 
@@ -29,20 +30,25 @@
 # Gather Data
 
     #Get Node State
-    $NodeState = Get-ClusterNode $SystemHostname
+    $CurrentNodeState = Get-ClusterNode -Name $SystemHostname
+    $NodeState += New-Object -TypeName PSObject -Property @{
+        Name = $CurrentNodeState.Name;
+        Id = $CurrentNodeState.Id;
+        State = $CurrentNodeState.Status;
+        }
 
     # Get Node Services Health
-    $ServiceHealth = Test-ServiceHealth
+    $ServiceHealth = Test-ServiceHealth -Identity $SystemHostname
         # I need $servicehealth.ServicesNotRunning to be empty, will need to use an until loop here
 
     # Get Replication Health
-    $ReplicationHealth = Test-ReplicationHealth
+    $ReplicationHealth = Test-ReplicationHealth -Identity $SystemHostname
         # I need:
         #   $replicationhealth.Result to be Passed
         #   $replicationhealth.Error to be empty
     
     # Get Server Component Health
-    $ServerComponentState = Get-ServerComponentState $SystemHostname
+    $ServerComponentState = Get-ServerComponentState -Identity $SystemHostname
         # I Need $servercomponentstate.state to be Active, except for:
         #   ForwardSyncDaemon
         #   ProvisioningRps
