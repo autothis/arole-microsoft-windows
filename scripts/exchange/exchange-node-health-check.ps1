@@ -85,7 +85,7 @@
       mailbox_database_copy_status = $MailboxDatabaseCopyStatus | Select Name,Server,Status,ContentIndexState,CopyQueueLength,ReplayqueueLength
       }
     
-    $MailboxDatabases = Get-MailboxDatabase -Server $SystemHostname
+    Get-MailboxDatabase -Server $SystemHostname
     $MailboxDatabaseCopyStatus
     $ExchangeNodeHealth | ConvertTo-JSON
 
