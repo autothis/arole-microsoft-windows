@@ -15,6 +15,7 @@
     $ErrorActionPreference = 'Stop'
     $MailboxDatabaseCopyStatus = @()
     $NodeState = @()
+    $ServiceHealth = @()
     
 # Create Credential Object
 
@@ -39,8 +40,31 @@
         }
 
     # Get Node Services Health
-    $ServiceHealth = Test-ServiceHealth -Identity $SystemHostname
+    $CurrentServiceHealth = Test-ServiceHealth -Identity $SystemHostname
         # I need $servicehealth.ServicesNotRunning to be empty, will need to use an until loop here
+    ForEach ($Role in $CurrentServiceHealth) {
+        ForEach ($Service in $Role.ServicesNotRunning) {
+            $ServiceHealth += New-Object -TypeName PSObject -Property @{
+                Role = $Role.Role;
+                Server = $Role.PSComputerName;
+                Status = "ServiceNotRunning";
+                Service = $Service;
+                }
+            }
+        ForEach ($Service in $Role.ServicesRunning) {
+            $ServiceHealth += New-Object -TypeName PSObject -Property @{
+                Role = $Role.Role;
+                Server = $Role.PSComputerName;
+                Status = "ServiceRunning";
+                Service = $Service;
+                }
+            }
+        }
+    $ServiceHealth += New-Object -TypeName PSObject -Property @{
+        Name = $CurrentNodeState.Name;
+        Id = $CurrentNodeState.Id;
+        State = $($CurrentNodeState.State | Out-String).trim();
+        }
 
     # Get Replication Health
     $ReplicationHealth = Test-ReplicationHealth -Identity $SystemHostname
