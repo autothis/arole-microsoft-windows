@@ -29,8 +29,9 @@
 
 # Gather Data
 
-    #Get Node State - This command will not work, unless the command is executed on an Exchange Server (even with importing the CMDLETs from a PSSession)
+    #Get Node State
     $CurrentNodeState = Get-ClusterNode -Name $SystemHostname
+        # This is a CMDLET from the 'FailoverClusters' Powershell Module, not from the Exchange CMDLETs (should already be installed)
     $NodeState += New-Object -TypeName PSObject -Property @{
         Name = $CurrentNodeState.Name;
         Id = $CurrentNodeState.Id;
@@ -56,7 +57,8 @@
     # Get Mailbox Database Health
     $MailboxDatabases = Get-MailboxDatabase -Server $SystemHostname
     ForEach ($MailboxDatabase in $MailboxDatabases) {
-        ForEach ($MailboxDatabaseServer in $MailboxDatabase.Servers.Name) {
+        ForEach ($MailboxDatabaseServer in $MailboxDatabase.Servers) {
+            # If running the command in the 'Exchange Management Shell' directly, you need to address '$MailboxDatabase.Servers.Name' instead.
             $DatabaseCopyStatus = Get-MailboxDatabaseCopyStatus -Identity "$($MailboxDatabase.Name)\$($MailboxDatabaseServer)"
             $MailboxDatabaseCopyStatus += New-Object -TypeName PSObject -Property @{
                 Name = $MailboxDatabase.Name;
