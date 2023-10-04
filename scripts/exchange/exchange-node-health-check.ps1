@@ -29,7 +29,7 @@
 
 # Gather Data
 
-    #Get Node State
+    #Get Node State - This command will not work, unless the command is executed on an Exchange Server (even with importing the CMDLETs from a PSSession)
     $CurrentNodeState = Get-ClusterNode -Name $SystemHostname
     $NodeState += New-Object -TypeName PSObject -Property @{
         Name = $CurrentNodeState.Name;
@@ -75,10 +75,6 @@
         #   $mailboxcopystatus.CopyQueueLength to be less than 10
         #   $mailboxcopystatus.ReplayqueueLength to be less than 10
 
-# Cleanup Session
-
-    Remove-PSSession $Session
-
 # Format Results in JSON
     
     $ExchangeNodeHealth = [PSCustomObject]@{
@@ -92,3 +88,7 @@
     $MailboxDatabases = Get-MailboxDatabase -Server $SystemHostname
     $MailboxDatabaseCopyStatus
     $ExchangeNodeHealth | ConvertTo-JSON
+
+# Cleanup Session
+
+    Remove-PSSession $Session
