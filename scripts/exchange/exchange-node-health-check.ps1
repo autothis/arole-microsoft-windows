@@ -34,7 +34,7 @@
     $NodeState += New-Object -TypeName PSObject -Property @{
         Name = $CurrentNodeState.Name;
         Id = $CurrentNodeState.Id;
-        State = $CurrentNodeState.Status;
+        State = $CurrentNodeState.State;
         }
 
     # Get Node Services Health
@@ -89,4 +89,6 @@
       mailbox_database_copy_status = $MailboxDatabaseCopyStatus | Select Name,Server,Status,ContentIndexState,CopyQueueLength,ReplayqueueLength
       }
     
-    $ExchangeNodeHealth | convertto-json
+    $MailboxDatabases = Get-MailboxDatabase -Server $SystemHostname
+    $MailboxDatabaseCopyStatus
+    $ExchangeNodeHealth | ConvertTo-JSON
