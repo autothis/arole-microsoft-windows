@@ -35,7 +35,7 @@
     $NodeState += New-Object -TypeName PSObject -Property @{
         Name = $CurrentNodeState.Name;
         Id = $CurrentNodeState.Id;
-        State = $CurrentNodeState.State;
+        State = $($CurrentNodeState.State | Out-String).trim();
         }
 
     # Get Node Services Health
