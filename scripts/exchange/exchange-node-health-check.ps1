@@ -60,11 +60,6 @@
                 }
             }
         }
-    $ServiceHealth += New-Object -TypeName PSObject -Property @{
-        Name = $CurrentNodeState.Name;
-        Id = $CurrentNodeState.Id;
-        State = $($CurrentNodeState.State | Out-String).trim();
-        }
 
     # Get Replication Health
     $ReplicationHealth = Test-ReplicationHealth -Identity $SystemHostname
