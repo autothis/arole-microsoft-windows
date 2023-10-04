@@ -86,9 +86,7 @@
       server_component_state = $ServerComponentState
       mailbox_database_copy_status = $MailboxDatabaseCopyStatus | Select Name,Server,Status,ContentIndexState,CopyQueueLength,ReplayqueueLength
       }
-    
-    Get-MailboxDatabase -Server $SystemHostname
-    $MailboxDatabaseCopyStatus
+
     $ExchangeNodeHealth | ConvertTo-JSON
 
 # Cleanup Session
