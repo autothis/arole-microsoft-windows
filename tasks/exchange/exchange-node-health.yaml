@@ -194,23 +194,24 @@
        | length > 0
     - exchange_node_health_gather_only != 'yes'
 
-# exchange_copy_queue_limit: 10
-# exchange_replay_queue_limit: 10
+- name: Exchange Node Database Copy Replay Queue Length
+  ansible.builtin.debug:
+    msg: "All Exchange Database Copy Replay Queue Lengths on {{ ansible_host }} are under {{ exchange_replay_queue_limit }}."
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ReplayqueueLength')
+       | select('le', 'exchange_replay_queue_limit | int')
+       | length > 0
+    - exchange_node_health_gather_only != 'yes'
 
-# To Do:
-# Set fact any copyqueuelengths above 10
-# Set fact any replayqueuelengths above 10
-# Set fact unhealthy databases if conditions above are !true
-
-# Done:
-# Set fact Node State
-# Set fact all services running
-# Set fact services not running, if all services running !true
-# Set fact replication checks passed
-# Set fact replication checks that have failed, if replication checks passed !true
-# Set fact component state active
-# Set fact component state serverwideoffline if true
-#   Components expected to be inactive are 'ForwardSyncDaemon' & 'ProvisioningRps'
-# Set fact any databases mounted
-# Set fact all databases are healthy (active or mounted)
-# Set fact any indexstates not healthy
+- name: "Fail Ansible Play if any Exchange Node Database Copy Replay Queue Lengths are over {{ exchange_replay_queue_limit }}."
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Database Copy Replay Queue Lengths on {{ ansible_host }} are over {{ exchange_replay_queue_limit }}."
+    - "{{ exchange_node_health['mailbox_database_copy_status'] }}"
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ReplayqueueLength')
+       | select('gt', 'exchange_replay_queue_limit | int')
+       | length > 0
+    - exchange_node_health_gather_only != 'yes'
