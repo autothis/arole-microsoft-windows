@@ -61,7 +61,7 @@
     - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
   when:
     - not exchange_node_health['replication_health']
-       | map(attribute='Status')
+       | map(attribute='Result')
        | reject('equalto', 'Passed')
        | length == exchange_node_health['replication_health'] | length
     - not exchange_node_health_gather_only == 'yes'
