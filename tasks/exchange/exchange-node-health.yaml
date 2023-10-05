@@ -142,10 +142,8 @@
   when:
     - exchange_node_health['mailbox_database_copy_status']
        | map(attribute='Status')
-       | select('equalto', 'Mounted')
-       | select('equalto', 'Healthy')
-       | length != exchange_node_health['mailbox_database_copy_status']
-       | length
+       | difference(['Mounted', 'Healthy'])
+       | length > 0
     - exchange_node_health_gather_only != 'yes'
 
 # To Do:
