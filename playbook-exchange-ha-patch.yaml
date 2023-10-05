@@ -16,26 +16,30 @@
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
 
-    - name: Confirm Exchange Health
+    - name: Confirm Exchange Node Health
       include_tasks: tasks/exchange/exchange-node-health.yaml
 
-#    - name: Confirm AG Replica Node Health
-#      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
+    - name: Disable Real Server
+      ansible.builtin.script:
+        cmd: scripts/kemp/kemp_disable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+        executable: /usr/bin/python3
+      delegate_to: localhost
+      vars:
+        kemp_api_url: "{{ lb_api_url }}"
+        kemp_api_username: "{{ kemp_username }}"
+        kemp_api_password: "{{ kemp_password }}"
+        kemp_real_server_ip: "{{ real_server_ip }}"
+        ansible_connection: local
+      register: disable_real_server
+
+#    - name: Put Exchange Node into Maintenance Mode
+#      include_tasks: tasks/exchange/exchange-node-maintenance.yaml
 #
-#    - name: Confirm AG Database Health
-#      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
-#
-#    - name: Is Failover Required for Current SQL AG Replica Node
-#      include_tasks: tasks/windows-sql-ag-failover-check.yaml
-#
-#    - name: Is Failover Current SQL AG Replica Node if Required
-#      include_tasks: tasks/windows-sql-ag-failover-node.yaml
-#      when: sql_current_replica['failover_required'] | trim == 'True'
-#
-#    - name: Suspend SQL data movement
+#    # I am thinking this wont be needed, i should do my change and verification in the maintenance mode task
+#    - name: Confirm Exchange Node Health
+#      include_tasks: tasks/exchange/exchange-node-health.yaml
 #      vars:
-#        data_movement_action: "suspend"
-#      include_tasks: tasks/windows-sql-ag-data-movement.yaml
+#        exchange_node_health_gather_only: 'True'
 #
 #    - name: Install all available windows update
 #      include_tasks: tasks/windows-update-all.yaml
@@ -62,16 +66,21 @@
 #    - name: Confirm Ansible can communicate with the patched hosts
 #      include_tasks: tasks/test-communication.yaml
 #
-#    - name: Resume SQL data movement
-#      vars:
-#        data_movement_action: "resume"
-#      include_tasks: tasks/windows-sql-ag-data-movement.yaml
-#    
-#    - name: Confirm AG Health
-#      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
+#    - name: Put Exchange Node into Maintenance Mode
+#      include_tasks: tasks/exchange/exchange-node-maintenance.yaml
 #
-#    - name: Confirm AG Replica Node Health
-#      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
-#
-#    - name: Confirm AG Database Health
-#      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
+#    - name: Confirm Exchange Node Health
+#      include_tasks: tasks/exchange/exchange-node-health.yaml
+
+    - name: Enable Real Server
+      ansible.builtin.script:
+        cmd: scripts/kemp/kemp_enable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+        executable: /usr/bin/python3
+      delegate_to: localhost
+      vars:
+        kemp_api_url: "{{ lb_api_url }}"
+        kemp_api_username: "{{ kemp_username }}"
+        kemp_api_password: "{{ kemp_password }}"
+        kemp_real_server_ip: "{{ real_server_ip }}"
+        ansible_connection: local
+      register: enable_real_server
