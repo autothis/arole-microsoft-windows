@@ -6,20 +6,47 @@
   register: exchange_node_health_check
 
 - name: Parse 'exchange_node_health_check' as JSON and set fact
-  set_fact:
+  ansible.builtin.set_fact:
     exchange_node_health: "{{ exchange_node_health_check.stdout | from_json }}"
 
-#- name: Exchange Node Health
-#  ansible.builtin.debug:
-#    msg: "{{ exchange_node_health }}"
-
-- name: Exchange Node State
+- name: Exchange Node Cluster State
   ansible.builtin.debug:
-    msg: "{{ exchange_node_health['node_state']['State'] }}"
+    msg: "Exchange Node Cluster State is {{ exchange_node_health['node_state']['State'] }}"
+  when:
+    - exchange_node_health['node_state']['State'] == 'Up'
 
-# Set fact Node State
-# Set fact all services running
-# Set fact services not running, if all services running !true
+- name: Fail Ansible Play if Exchange Node Cluster State is not 'Up'
+  fail:
+    msg:
+    - "Exchange Node State is not 'Up'."
+    - "{{ exchange_node_health['node_state'] }}"
+  when:
+    - not exchange_node_health['node_state']['State'] == 'Up'
+    - not exchange_node_health_gather_only == 'yes'
+
+- name: Exchange Node Services
+  ansible.builtin.debug:
+    msg: "All expected Exchange Node Services are Running."
+  when:
+    - exchange_node_health['service_health']
+       | map(attribute='Status')
+       | select('equalto', 'ServiceRunning')
+       | length == exchange_node_health['service_health'] | length
+
+- name: Fail Ansible Play if Exchange Services are not Running
+  fail:
+    msg:
+    - "Exchange Node Services are not Running"
+    - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
+  when:
+    - not exchange_node_health['service_health']
+       | map(attribute='Status')
+       | select('equalto', 'ServiceNotRunning')
+       | length == exchange_node_health['service_health'] | length
+    - not exchange_node_health_gather_only == 'yes'
+
+
+# To Do:
 # Set fact replication checks passed
 # Set fact replication checks that have failed, if replication checks passed !true
 # Set fact component state active
@@ -32,46 +59,7 @@
 # Set fact any replayqueuelengths above 10
 # Set fact unhealthy databases if conditions above are !true
 
-
-#- name: Fail Ansible Play if Exchange Node State is not 'Up'
-#  fail:
-#    msg:
-#    - "Exchange Node State is not 'Up'."
-#    - "{{ exchange_node_health }}"
-#  when:
-#    - not sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='ConnectionState')
-#       | select('equalto', 'Connected')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-#    - not sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='RollupSynchronizationState')
-#       | select('equalto', 'Synchronized')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-
-#- name: SQL Replicas Health Status
-#  ansible.builtin.debug:
-#    msg: "SQL Replicas Health Check on {{ ansible_host }} was Successful"
-#  when:
-#    - sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='ConnectionState')
-#       | select('equalto', 'Connected')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-#    - sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='RollupSynchronizationState')
-#       | select('equalto', 'Synchronized')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-#
-#- name: Fail Ansible Play if SQL Replicas Node Health Check Fails
-#  fail:
-#    msg:
-#    - "SQL Replica Node Health Check has Failed."
-#    - "{{ sql_replicas_healthy }}"
-#  when:
-#    - not sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='ConnectionState')
-#       | select('equalto', 'Connected')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-#    - not sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='RollupSynchronizationState')
-#       | select('equalto', 'Synchronized')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
+# Done:
+# Set fact Node State
+# Set fact all services running
+# Set fact services not running, if all services running !true

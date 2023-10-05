@@ -14,7 +14,6 @@
     $SystemHostname = (hostname).ToString()
     $ErrorActionPreference = 'Stop'
     $MailboxDatabaseCopyStatus = @()
-    #$NodeState = @()
     $ServiceHealth = @()
     
 # Create Credential Object
