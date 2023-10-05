@@ -1,5 +1,7 @@
 ---
 # This task will will check the health of the Exchange Server.
+# exchange_node_health_gather_only: 'True'
+# exchange_ignore_365_components: 'True'
 
 - name: Run Health Check for "{{ inventory_hostname }}"
   ansible.builtin.script: "scripts/exchange/exchange-node-health-check.ps1 -Username {{ winrm_username }} -Password {{ winrm_password }}"
@@ -142,6 +144,30 @@
        | map(attribute='Status')
        | difference(['Mounted', 'Healthy'])
        | length > 0
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Database Copy Content Index Health
+  ansible.builtin.debug:
+    msg: "All Exchange Databases Content Indexs on {{ ansible_host }} are Healthy."
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ContentIndexState')
+       | select('equalto', 'Healthy')
+       | length == exchange_node_health['mailbox_database_copy_status']
+       | length
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Fail Ansible Play if any Exchange Database Content Indexes are not Healthy.
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Databases Content Indexs on {{ ansible_host }} are not Healthy."
+    - "{{ exchange_node_health['mailbox_database_copy_status'] }}"
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ContentIndexState')
+       | select('equalto', 'Healthy')
+       | length != exchange_node_health['mailbox_database_copy_status']
+       | length
     - exchange_node_health_gather_only != 'yes'
 
 # To Do:
