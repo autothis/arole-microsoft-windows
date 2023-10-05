@@ -41,7 +41,7 @@
   when:
     - not exchange_node_health['service_health']
        | map(attribute='Status')
-       | select('equalto', 'ServiceNotRunning')
+       | select('equalto', 'ServiceRunning')
        | length == exchange_node_health['service_health'] | length
     - not exchange_node_health_gather_only == 'yes'
 
