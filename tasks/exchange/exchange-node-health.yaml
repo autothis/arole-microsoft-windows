@@ -11,14 +11,14 @@
 
 - name: Exchange Node Cluster State
   ansible.builtin.debug:
-    msg: "Exchange Node Cluster State is {{ exchange_node_health['node_state']['State'] }}"
+    msg: "Exchange Node Cluster State for {{ ansible_host }} is 'Up'"
   when:
     - exchange_node_health['node_state']['State'] == 'Up'
 
 - name: Fail Ansible Play if Exchange Node Cluster State is not 'Up'
   ansible.builtin.fail:
     msg:
-    - "Exchange Node State is not 'Up'."
+    - "Exchange Node State for {{ ansible_host }} is not 'Up'."
     - "{{ exchange_node_health['node_state'] }}"
   when:
     - exchange_node_health['node_state']['State'] != 'Up'
@@ -26,7 +26,7 @@
 
 - name: Exchange Node Services Health
   ansible.builtin.debug:
-    msg: "All expected Exchange Node Services are Running."
+    msg: "All expected Exchange Node Services on {{ ansible_host }} are Running."
   when:
     - exchange_node_health['service_health']
        | map(attribute='Status')
@@ -36,7 +36,7 @@
 - name: Fail Ansible Play if Exchange Services are not Running
   ansible.builtin.fail:
     msg:
-    - "One or more Exchange Node Services are not Running"
+    - "One or more Exchange Node Services on {{ ansible_host }} are not Running"
     - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
   when:
     - exchange_node_health['service_health']
@@ -47,7 +47,7 @@
 
 - name: Exchange Node Replication Health
   ansible.builtin.debug:
-    msg: "All Exchange Replication Health Checks have passed."
+    msg: "All Exchange Replication Health Checks on {{ ansible_host }} have passed."
   when:
     - exchange_node_health['replication_health']
        | map(attribute='Result')
@@ -57,7 +57,7 @@
 - name: Fail Ansible Play if any Exchange Node Replication Checks have failed.
   ansible.builtin.fail:
     msg:
-    - "One or more Exchange Node Replication Checks have failed"
+    - "One or more Exchange Node Replication Checks on {{ ansible_host }} have failed"
     - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
   when:
     - exchange_node_health['replication_health']
@@ -68,7 +68,7 @@
 
 - name: Exchange Node Component Health (Excluding 365 Component States)
   ansible.builtin.debug:
-    msg: "All expected Exchange Components are active."
+    msg: "All expected Exchange Components on {{ ansible_host }} are active."
   when:
     - exchange_node_health['server_component_state']
        | map(attribute='State')
@@ -80,22 +80,11 @@
        | length
     - exchange_ignore_365_components == 'True'
 
-- name: Exchange Node Component Health (Including 365 Component States)
-  ansible.builtin.debug:
-    msg: "All expected Exchange Components are active."
-  when:
-    - exchange_node_health['server_component_state']
-       | map(attribute='State')
-       | select('equalto', 'Active')
-       | length == exchange_node_health['server_component_state']
-       | length
-    - exchange_ignore_365_components != 'True'
-
 - name: Fail Ansible Play if any Exchange Node Component Health (Excluding 365 Component States) have failed.
   ansible.builtin.fail:
     msg:
-    - "One or more Exchange Node Component States are not Active"
-    - "{{ exchange_node_health['server_component_state'] | map(attribute='State') | reject('equalto', 'Active') }}"
+    - "One or more Exchange Node Component States on {{ ansible_host }} are not Active"
+    - "{{ exchange_node_health['server_component_state'] }}"
   when:
     - not exchange_node_health['server_component_state']
        | map(attribute='State')
@@ -108,11 +97,22 @@
     - exchange_ignore_365_components == 'True'
     - exchange_node_health_gather_only != 'yes'
 
+- name: Exchange Node Component Health (Including 365 Component States)
+  ansible.builtin.debug:
+    msg: "All expected Exchange Components on {{ ansible_host }} are active."
+  when:
+    - exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length == exchange_node_health['server_component_state']
+       | length
+    - exchange_ignore_365_components != 'True'
+
 - name: Fail Ansible Play if any Exchange Node Component Health (Including 365 Component States) have failed.
   ansible.builtin.fail:
     msg:
-    - "One or more Exchange Node Component States are not Active"
-    - "{{ exchange_node_health['server_component_state'] | map(attribute='State') | reject('equalto', 'Active') }}"
+    - "One or more Exchange Node Component States on {{ ansible_host }} are not Active"
+    - "{{ exchange_node_health['server_component_state'] }}"
   when:
     - exchange_node_health['server_component_state']
        | map(attribute='State')
@@ -122,12 +122,33 @@
     - exchange_ignore_365_components != 'True'
     - exchange_node_health_gather_only != 'yes'
 
+- name: Exchange Node Database Copy Health
+  ansible.builtin.debug:
+    msg: "All Exchange Databases on {{ ansible_host }} are Healthy (Mounted or Healthy)."
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='Status')
+       | select('equalto', 'Mounted')
+       | select('equalto', 'Healthy')
+       | length == exchange_node_health['mailbox_database_copy_status']
+       | length
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Fail Ansible Play if any Exchange Database Copies are not Healthy (Mounted or Healthy).
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Databases on {{ ansible_host }} are not Healthy (Mounted or Healthy)."
+    - "{{ exchange_node_health['mailbox_database_copy_status'] }}"
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='Status')
+       | select('equalto', 'Mounted')
+       | select('equalto', 'Healthy')
+       | length != exchange_node_health['mailbox_database_copy_status']
+       | length
+    - exchange_node_health_gather_only != 'yes'
+
 # To Do:
-# Set fact component state active
-# Set fact component state serverwideoffline if true
-#   Components expected to be inactive are 'ForwardSyncDaemon' & 'ProvisioningRps'
-# Set fact any databases mounted
-# Set fact all databases are healthy (active or mounted)
 # Set fact any indexstates not healthy
 # Set fact any copyqueuelengths above 10
 # Set fact any replayqueuelengths above 10
@@ -139,3 +160,8 @@
 # Set fact services not running, if all services running !true
 # Set fact replication checks passed
 # Set fact replication checks that have failed, if replication checks passed !true
+# Set fact component state active
+# Set fact component state serverwideoffline if true
+#   Components expected to be inactive are 'ForwardSyncDaemon' & 'ProvisioningRps'
+# Set fact any databases mounted
+# Set fact all databases are healthy (active or mounted)
