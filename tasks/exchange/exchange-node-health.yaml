@@ -13,6 +13,10 @@
 #  ansible.builtin.debug:
 #    msg: "{{ exchange_node_health }}"
 
+- name: Exchange Node State
+  ansible.builtin.debug:
+    msg: "{{ exchange_node_health['node_state']['State'] }}"
+
 # Set fact Node State
 # Set fact all services running
 # Set fact services not running, if all services running !true
