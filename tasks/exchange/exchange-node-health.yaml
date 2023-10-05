@@ -24,7 +24,7 @@
     - not exchange_node_health['node_state']['State'] == 'Up'
     - not exchange_node_health_gather_only == 'yes'
 
-- name: Exchange Node Services
+- name: Exchange Node Services Health
   ansible.builtin.debug:
     msg: "All expected Exchange Node Services are Running."
   when:
@@ -36,7 +36,7 @@
 - name: Fail Ansible Play if Exchange Services are not Running
   fail:
     msg:
-    - "Exchange Node Services are not Running"
+    - "One or more Exchange Node Services are not Running"
     - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
   when:
     - not exchange_node_health['service_health']
@@ -45,10 +45,28 @@
        | length == exchange_node_health['service_health'] | length
     - not exchange_node_health_gather_only == 'yes'
 
+- name: Exchange Node Replication Health
+  ansible.builtin.debug:
+    msg: "All Exchange Replication Health Checks have passed."
+  when:
+    - exchange_node_health['replication_health']
+       | map(attribute='Result')
+       | select('equalto', 'Passed')
+       | length == exchange_node_health['replication_health'] | length
+
+- name: Fail Ansible Play if any Exchange Node Replication Checks have failed.
+  fail:
+    msg:
+    - "One or more Exchange Node Replication Checks have failed"
+    - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
+  when:
+    - not exchange_node_health['replication_health']
+       | map(attribute='Status')
+       | reject('equalto', 'Passed')
+       | length == exchange_node_health['replication_health'] | length
+    - not exchange_node_health_gather_only == 'yes'
 
 # To Do:
-# Set fact replication checks passed
-# Set fact replication checks that have failed, if replication checks passed !true
 # Set fact component state active
 # Set fact component state serverwideoffline if true
 #   Components expected to be inactive are 'ForwardSyncDaemon' & 'ProvisioningRps'
@@ -63,3 +81,5 @@
 # Set fact Node State
 # Set fact all services running
 # Set fact services not running, if all services running !true
+# Set fact replication checks passed
+# Set fact replication checks that have failed, if replication checks passed !true
