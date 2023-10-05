@@ -21,8 +21,8 @@
     - "Exchange Node State is not 'Up'."
     - "{{ exchange_node_health['node_state'] }}"
   when:
-    - not exchange_node_health['node_state']['State'] == 'Up'
-    - not exchange_node_health_gather_only == 'yes'
+    - exchange_node_health['node_state']['State'] != 'Up'
+    - exchange_node_health_gather_only != 'yes'
 
 - name: Exchange Node Services Health
   ansible.builtin.debug:
@@ -39,11 +39,11 @@
     - "One or more Exchange Node Services are not Running"
     - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
   when:
-    - not exchange_node_health['service_health']
+    - exchange_node_health['service_health']
        | map(attribute='Status')
        | select('equalto', 'ServiceRunning')
-       | length == exchange_node_health['service_health'] | length
-    - not exchange_node_health_gather_only == 'yes'
+       | length != exchange_node_health['service_health'] | length
+    - exchange_node_health_gather_only != 'yes'
 
 - name: Exchange Node Replication Health
   ansible.builtin.debug:
@@ -60,13 +60,13 @@
     - "One or more Exchange Node Replication Checks have failed"
     - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
   when:
-    - not exchange_node_health['replication_health']
+    - exchange_node_health['replication_health']
        | map(attribute='Result')
        | select('equalto', 'Passed')
-       | length == exchange_node_health['replication_health'] | length
-    - not exchange_node_health_gather_only == 'yes'
+       | length != exchange_node_health['replication_health'] | length
+    - exchange_node_health_gather_only != 'yes'
 
-- name: Exchange Node Component Health
+- name: Exchange Node Component Health (Excluding 365 Component States)
   ansible.builtin.debug:
     msg: "All expected Exchange Components are active."
   when:
@@ -80,7 +80,7 @@
        | length
     - exchange_ignore_365_components == 'True'
 
-- name: Exchange Node Component Health
+- name: Exchange Node Component Health (Including 365 Component States)
   ansible.builtin.debug:
     msg: "All expected Exchange Components are active."
   when:
@@ -91,8 +91,36 @@
        | length
     - exchange_ignore_365_components != 'True'
 
+- name: Fail Ansible Play if any Exchange Node Component Health (Excluding 365 Component States) have failed.
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Node Component States are not Active"
+    - "{{ exchange_node_health['server_component_state'] | map(attribute='State') | reject('equalto', 'Active') }}"
+  when:
+    - not exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length == exchange_node_health['server_component_state']
+       | map(attribute='Component')
+       | reject('equalto', 'ForwardSyncDaemon')
+       | reject('equalto', 'ProvisioningRps')
+       | length
+    - exchange_ignore_365_components == 'True'
+    - exchange_node_health_gather_only != 'yes'
 
-
+- name: Fail Ansible Play if any Exchange Node Component Health (Including 365 Component States) have failed.
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Node Component States are not Active"
+    - "{{ exchange_node_health['server_component_state'] | map(attribute='State') | reject('equalto', 'Active') }}"
+  when:
+    - exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length != exchange_node_health['server_component_state']
+       | length
+    - exchange_ignore_365_components != 'True'
+    - exchange_node_health_gather_only != 'yes'
 
 # To Do:
 # Set fact component state active
