@@ -2,6 +2,12 @@
 # This task will patch a Windows device as many times as is required to install all available updates"
 #
 # Required Variable:
+#  - {{ reject_updates }} : List of updates to reject, can be the KBs and or regex for descriptions
+#      In the example below i have excluded some Defender and Driver updates that were getting stuck in update loops.
+#        reject_updates:
+#          - KB2267602
+#          - '.*Driver.*'
+#          - '.*Defender.*'
 #  - {{ wsus }} : This can be one of three options:
 #      "default" - this lets the end point decide which update source to use
 #      "managed_server" - this lets you select wsus as the update source to use
@@ -10,10 +16,11 @@
 - name: Install Windows updates
   ansible.windows.win_updates:
     category_names: '*'
-    #server_selection: "{{ wsus }}"
+    reject_list: "{{ reject_updates }}"
+    server_selection: "{{ wsus }}"
     reboot: yes
     reboot_timeout: 1200
-    #log_path: c:\programdata\ansible_patchlog.log
+    log_path: c:\programdata\ansible_patchlog.log
   become: yes
   become_method: runas
   become_user: "{{ ansible_user }}"

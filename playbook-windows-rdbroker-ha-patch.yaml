@@ -19,6 +19,7 @@
 #
 #    Credentials Variables Examples:
 #      WinRM Credentials:
+#        # Notice the capitalised domain.
 #        winrm_username: winrm@YOURDOMAIN.COM
 #        winrm_password: insertpasswordhere
 #      vCenter Credentials:
@@ -30,14 +31,22 @@
 #        For Kerberos to work, you will need to create a '/etc/krb5.conf' file (see example-krb5.conf in Git Repo)
 #
 #  Known Issues:
-#    1: There seems to be some issues when running the Failover checks.
-#       The error occurs because of the WinRM users profile.
-#       Delete the profile from the Windows Server (cleanly through 'User Prfole Settings').
-#       Then log into the machine to initialize the user profile (running a remote command does not seem to be enough).
+#    1: There seems to be some issues when running "RemoteDesktop" Powershell module CMDLETS.
+#       These issues seem to be when the module is used in remote sessions (WinRM or Remote PSSessions).
+#       The unfortunate way i have worked around this issue (for now), is by creating, running and then deleting Scheduled Tasks.
+#       For some tasks the Scheduled Task will output a JSON file that Ansible will read, other tasks will be verified in a separate Ansible task.
 #
 #    2: The 'win_updates' Ansible Module has some known issues where it hangs and times out.
 #       Sometimes restarting the play and/or rebooting the inventory host fixes the issue, but not always.
 #         ref: https://github.com/ansible-collections/ansible.windows/issues/516
+#
+#    3: The 'win_updates' Ansible Module has been stuggling with some Windows Updates getting stuck in an update looks.
+#       This seems to be a common issue in Windows, specifically with Defender upates (this is not an issue with Ansible, but with Windows).
+#       You may find you need to exclude these updates from this play.
+#       You can exclude updated by KB or Description by passing the following variable to the Ansible play:
+#         reject_updates:
+#           - KB2267602
+#           - '.*Defender.*'
 
 - name: Microsoft RD Broker Server Patching (HA)
   hosts: all

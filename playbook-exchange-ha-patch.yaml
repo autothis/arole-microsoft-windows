@@ -1,4 +1,5 @@
 ---
+# WinRM account requires Exchange Permissions (Server Management or higher)
 - name: Microsoft Exchange Server Patching (HA)
   hosts: all
   vars:
@@ -12,12 +13,12 @@
   serial: 1
   tasks:
 
-#    - name: Confirm Ansible can communicate with the hosts to be patched
-#      include_tasks: tasks/test-communication.yaml
-#
-#    - name: Confirm AG Health
-#      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
-#
+    - name: Confirm Ansible can communicate with the hosts to be patched
+      include_tasks: tasks/test-communication.yaml
+
+    - name: Confirm Exchange Health
+      include_tasks: tasks/exchange/exchange-node-health.yaml
+
 #    - name: Confirm AG Replica Node Health
 #      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
 #

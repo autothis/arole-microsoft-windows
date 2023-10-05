@@ -1,38 +1,217 @@
 ---
 # This task will will check the health of the Exchange Server.
+# exchange_node_health_gather_only: 'True'
+# exchange_ignore_365_components: 'True'
+# exchange_copy_queue_limit: 10
+# exchange_replay_queue_limit: 10
 
 - name: Run Health Check for "{{ inventory_hostname }}"
-  ansible.builtin.script: "scripts/exchange/exchange-node-health-check.ps1"
+  ansible.builtin.script: "scripts/exchange/exchange-node-health-check.ps1 -Username {{ winrm_username }} -Password {{ winrm_password }}"
   register: exchange_node_health_check
 
 - name: Parse 'exchange_node_health_check' as JSON and set fact
-  set_fact:
-    sql_replicas_healthy: "{{ exchange_node_health_check.stdout | from_json }}"
+  ansible.builtin.set_fact:
+    exchange_node_health: "{{ exchange_node_health_check.stdout | from_json }}"
 
-#- name: SQL Replicas Health Status
-#  ansible.builtin.debug:
-#    msg: "SQL Replicas Health Check on {{ ansible_host }} was Successful"
-#  when:
-#    - sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='ConnectionState')
-#       | select('equalto', 'Connected')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-#    - sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='RollupSynchronizationState')
-#       | select('equalto', 'Synchronized')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-#
-#- name: Fail Ansible Play if SQL Replicas Node Health Check Fails
-#  fail:
-#    msg:
-#    - "SQL Replica Node Health Check has Failed."
-#    - "{{ sql_replicas_healthy }}"
-#  when:
-#    - not sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='ConnectionState')
-#       | select('equalto', 'Connected')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
-#    - not sql_replicas_healthy['sql_availability_group_replicas']
-#       | map(attribute='RollupSynchronizationState')
-#       | select('equalto', 'Synchronized')
-#       | length == sql_replicas_healthy['sql_availability_group_replicas'] | length
+- name: Exchange Node Cluster State
+  ansible.builtin.debug:
+    msg: "Exchange Node Cluster State for {{ ansible_host }} is 'Up'"
+  when:
+    - exchange_node_health['node_state']['State'] == 'Up'
+
+- name: Fail Ansible Play if Exchange Node Cluster State is not 'Up'
+  ansible.builtin.fail:
+    msg:
+    - "Exchange Node State for {{ ansible_host }} is not 'Up'."
+    - "{{ exchange_node_health['node_state'] }}"
+  when:
+    - exchange_node_health['node_state']['State'] != 'Up'
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Services Health
+  ansible.builtin.debug:
+    msg: "All expected Exchange Node Services on {{ ansible_host }} are Running."
+  when:
+    - exchange_node_health['service_health']
+       | map(attribute='Status')
+       | select('equalto', 'ServiceRunning')
+       | length == exchange_node_health['service_health'] | length
+
+- name: Fail Ansible Play if Exchange Services are not Running
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Node Services on {{ ansible_host }} are not Running"
+    - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
+  when:
+    - exchange_node_health['service_health']
+       | map(attribute='Status')
+       | select('equalto', 'ServiceRunning')
+       | length != exchange_node_health['service_health'] | length
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Replication Health
+  ansible.builtin.debug:
+    msg: "All Exchange Replication Health Checks on {{ ansible_host }} have passed."
+  when:
+    - exchange_node_health['replication_health']
+       | map(attribute='Result')
+       | select('equalto', 'Passed')
+       | length == exchange_node_health['replication_health'] | length
+
+- name: Fail Ansible Play if any Exchange Node Replication Checks have failed.
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Node Replication Checks on {{ ansible_host }} have failed"
+    - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
+  when:
+    - exchange_node_health['replication_health']
+       | map(attribute='Result')
+       | select('equalto', 'Passed')
+       | length != exchange_node_health['replication_health'] | length
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Component Health (Excluding 365 Component States)
+  ansible.builtin.debug:
+    msg: "All expected Exchange Components on {{ ansible_host }} are active."
+  when:
+    - exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length == exchange_node_health['server_component_state']
+       | map(attribute='Component')
+       | reject('equalto', 'ForwardSyncDaemon')
+       | reject('equalto', 'ProvisioningRps')
+       | length
+    - exchange_ignore_365_components == 'True'
+
+- name: Fail Ansible Play if any Exchange Node Component Health (Excluding 365 Component States) have failed.
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Node Component States on {{ ansible_host }} are not Active"
+    - "{{ exchange_node_health['server_component_state'] }}"
+  when:
+    - not exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length == exchange_node_health['server_component_state']
+       | map(attribute='Component')
+       | reject('equalto', 'ForwardSyncDaemon')
+       | reject('equalto', 'ProvisioningRps')
+       | length
+    - exchange_ignore_365_components == 'True'
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Component Health (Including 365 Component States)
+  ansible.builtin.debug:
+    msg: "All expected Exchange Components on {{ ansible_host }} are active."
+  when:
+    - exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length == exchange_node_health['server_component_state']
+       | length
+    - exchange_ignore_365_components != 'True'
+
+- name: Fail Ansible Play if any Exchange Node Component Health (Including 365 Component States) have failed.
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Node Component States on {{ ansible_host }} are not Active"
+    - "{{ exchange_node_health['server_component_state'] }}"
+  when:
+    - exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length != exchange_node_health['server_component_state']
+       | length
+    - exchange_ignore_365_components != 'True'
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Database Copy Health
+  ansible.builtin.debug:
+    msg: "All Exchange Databases on {{ ansible_host }} are Healthy (Mounted or Healthy)."
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='Status')
+       | difference(['Mounted', 'Healthy'])
+       | length == 0
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Fail Ansible Play if any Exchange Database Copies are not Healthy (Mounted or Healthy).
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Databases on {{ ansible_host }} are not Healthy (Mounted or Healthy)."
+    - "{{ exchange_node_health['mailbox_database_copy_status'] }}"
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='Status')
+       | difference(['Mounted', 'Healthy'])
+       | length > 0
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Database Copy Content Index Health
+  ansible.builtin.debug:
+    msg: "All Exchange Database Content Indexes on {{ ansible_host }} are Healthy."
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ContentIndexState')
+       | select('equalto', 'Healthy')
+       | length == exchange_node_health['mailbox_database_copy_status']
+       | length
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Fail Ansible Play if any Exchange Database Content Indexes are not Healthy.
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Database Content Indexes on {{ ansible_host }} are not Healthy."
+    - "{{ exchange_node_health['mailbox_database_copy_status'] }}"
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ContentIndexState')
+       | select('equalto', 'Healthy')
+       | length != exchange_node_health['mailbox_database_copy_status']
+       | length
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Database Copy Queue Length
+  ansible.builtin.debug:
+    msg: "All Exchange Database Copy Queue Lengths on {{ ansible_host }} are under {{ exchange_copy_queue_limit }}."
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='CopyQueueLength')
+       | select('le', exchange_copy_queue_limit | int)
+       | length > 0
+    - exchange_node_health_gather_only != 'yes'
+
+- name: "Fail Ansible Play if any Exchange Node Database Copy Queue Lengths are over {{ exchange_copy_queue_limit }}."
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Database Copy Queue Lengths on {{ ansible_host }} are over {{ exchange_copy_queue_limit }}."
+    - "{{ exchange_node_health['mailbox_database_copy_status'] }}"
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='CopyQueueLength')
+       | select('gt', exchange_copy_queue_limit | int)
+       | length > 0
+    - exchange_node_health_gather_only != 'yes'
+
+- name: Exchange Node Database Copy Replay Queue Length
+  ansible.builtin.debug:
+    msg: "All Exchange Database Copy Replay Queue Lengths on {{ ansible_host }} are under {{ exchange_replay_queue_limit }}."
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ReplayqueueLength')
+       | select('le', exchange_replay_queue_limit | int)
+       | length > 0
+    - exchange_node_health_gather_only != 'yes'
+
+- name: "Fail Ansible Play if any Exchange Node Database Copy Replay Queue Lengths are over {{ exchange_replay_queue_limit }}."
+  ansible.builtin.fail:
+    msg:
+    - "One or more Exchange Database Copy Replay Queue Lengths on {{ ansible_host }} are over {{ exchange_replay_queue_limit }}."
+    - "{{ exchange_node_health['mailbox_database_copy_status'] }}"
+  when:
+    - exchange_node_health['mailbox_database_copy_status']
+       | map(attribute='ReplayqueueLength')
+       | select('gt', exchange_replay_queue_limit | int)
+       | length > 0
+    - exchange_node_health_gather_only != 'yes'

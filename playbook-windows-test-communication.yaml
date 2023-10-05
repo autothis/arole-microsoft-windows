@@ -1,4 +1,21 @@
 ---
+# Requirements:
+#    Playbook Variables Examples:
+#      connection_port: 5986
+#      connection_type: winrm
+#      connection_transport: kerberos
+#      connection_cert_validation: ignore
+#
+#    Credentials Variables Examples:
+#      WinRM Credentials:
+#        # Notice the capitalised domain.
+#        winrm_username: winrmuser@YOURDOMAIN.COM
+#        winrm_password: insertpasswordhere
+#
+#    Optional Playbook Requirements:
+#      Kerberos:
+#        For Kerberos to work, you will need to create a '/etc/krb5.conf' file (see example-krb5.conf in Git Repo)
+
 - name: Test WinRM Communication
   hosts: all
   gather_facts: false
