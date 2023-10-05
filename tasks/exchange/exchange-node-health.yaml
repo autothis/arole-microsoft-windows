@@ -62,7 +62,7 @@
   when:
     - not exchange_node_health['replication_health']
        | map(attribute='Result')
-       | reject('equalto', 'Passed')
+       | select('equalto', 'Passed')
        | length == exchange_node_health['replication_health'] | length
     - not exchange_node_health_gather_only == 'yes'
 
