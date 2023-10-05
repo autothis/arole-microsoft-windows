@@ -178,7 +178,7 @@
   when:
     - exchange_node_health['mailbox_database_copy_status']
        | map(attribute='CopyQueueLength')
-       | select('le', 'exchange_copy_queue_limit | int')
+       | select('le', exchange_copy_queue_limit | int)
        | length > 0
     - exchange_node_health_gather_only != 'yes'
 
@@ -190,7 +190,7 @@
   when:
     - exchange_node_health['mailbox_database_copy_status']
        | map(attribute='CopyQueueLength')
-       | select('gt', 'exchange_copy_queue_limit | int')
+       | select('gt', exchange_copy_queue_limit | int)
        | length > 0
     - exchange_node_health_gather_only != 'yes'
 
@@ -200,7 +200,7 @@
   when:
     - exchange_node_health['mailbox_database_copy_status']
        | map(attribute='ReplayqueueLength')
-       | select('le', 'exchange_replay_queue_limit | int')
+       | select('le', exchange_replay_queue_limit | int)
        | length > 0
     - exchange_node_health_gather_only != 'yes'
 
@@ -212,6 +212,6 @@
   when:
     - exchange_node_health['mailbox_database_copy_status']
        | map(attribute='ReplayqueueLength')
-       | select('gt', 'exchange_replay_queue_limit | int')
+       | select('gt', exchange_replay_queue_limit | int)
        | length > 0
     - exchange_node_health_gather_only != 'yes'
