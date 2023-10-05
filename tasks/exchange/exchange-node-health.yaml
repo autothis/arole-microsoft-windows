@@ -16,7 +16,7 @@
     - exchange_node_health['node_state']['State'] == 'Up'
 
 - name: Fail Ansible Play if Exchange Node Cluster State is not 'Up'
-  fail:
+  ansible.builtin.fail:
     msg:
     - "Exchange Node State is not 'Up'."
     - "{{ exchange_node_health['node_state'] }}"
@@ -34,7 +34,7 @@
        | length == exchange_node_health['service_health'] | length
 
 - name: Fail Ansible Play if Exchange Services are not Running
-  fail:
+  ansible.builtin.fail:
     msg:
     - "One or more Exchange Node Services are not Running"
     - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
@@ -55,7 +55,7 @@
        | length == exchange_node_health['replication_health'] | length
 
 - name: Fail Ansible Play if any Exchange Node Replication Checks have failed.
-  fail:
+  ansible.builtin.fail:
     msg:
     - "One or more Exchange Node Replication Checks have failed"
     - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
