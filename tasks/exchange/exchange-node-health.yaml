@@ -177,8 +177,8 @@
     msg: "All Exchange Database Copy Queue Lengths on {{ ansible_host }} are under {{ exchange_copy_queue_limit }}."
   when:
     - exchange_node_health['mailbox_database_copy_status']
-       | map(int='CopyQueueLength')
-       | select('int', 'le', 'exchange_copy_queue_limit')
+       | map(attribute='CopyQueueLength')
+       | select('le', exchange_copy_queue_limit | int)
        | length > 0
     - exchange_node_health_gather_only != 'yes'
 
