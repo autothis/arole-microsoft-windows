@@ -66,6 +66,20 @@
        | length == exchange_node_health['replication_health'] | length
     - not exchange_node_health_gather_only == 'yes'
 
+- name: Exchange Node Component Health
+  ansible.builtin.debug:
+    msg: "All expected Exchange Components are active."
+  when:
+    - exchange_node_health['server_component_state']
+       | map(attribute='State')
+       | select('equalto', 'Active')
+       | length == exchange_node_health['server_component_state']
+       | map(attribute='Component')
+       | reject('equalto', 'ForwardSyncDaemon')
+       | reject('equalto', 'ProvisioningRps')
+       | length
+
+
 # To Do:
 # Set fact component state active
 # Set fact component state serverwideoffline if true
