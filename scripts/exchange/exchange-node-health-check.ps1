@@ -14,7 +14,7 @@
     $SystemHostname = (hostname).ToString()
     $ErrorActionPreference = 'Stop'
     $MailboxDatabaseCopyStatus = @()
-    $NodeState = @()
+    #$NodeState = @()
     $ServiceHealth = @()
     
 # Create Credential Object
@@ -33,7 +33,7 @@
     #Get Node State
     $CurrentNodeState = Get-ClusterNode -Name $SystemHostname
         # This is a CMDLET from the 'FailoverClusters' Powershell Module, not from the Exchange CMDLETs (should already be installed)
-    $NodeState += New-Object -TypeName PSObject -Property @{
+    $NodeState = New-Object -TypeName PSObject -Property @{
         Name = $CurrentNodeState.Name;
         Id = $CurrentNodeState.Id;
         State = $($CurrentNodeState.State | Out-String).trim();
