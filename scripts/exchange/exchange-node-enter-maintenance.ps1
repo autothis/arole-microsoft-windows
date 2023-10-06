@@ -85,17 +85,17 @@ If ($Action -eq "suspend") {
         $CurrentExchangeServer = $SystemHostname
 
         # Set all components of $CurrentExchangeServer to be 'Active' after maintenance has been completed
-        Set-ServerComponentState $CurrentExchangeServer –Component ServerWideOffline –State Active –Requester Maintenance
+        Set-ServerComponentState $CurrentExchangeServer -Component ServerWideOffline -State Active -Requester Maintenance
 
         # Resume Windows Failover Cluster Node
-        Resume-ClusterNode –Name $CurrentExchangeServer
+        Resume-ClusterNode -Name $CurrentExchangeServer
         
         # Re-Enable Database Activation on $CurrentExchangeServer
-        Set-MailboxServer $CurrentExchangeServer –DatabaseCopyAutoActivationPolicy Unrestricted
-        Set-MailboxServer $CurrentExchangeServer –DatabaseCopyActivationDisabledAndMoveNow $false
+        Set-MailboxServer $CurrentExchangeServer -DatabaseCopyAutoActivationPolicy Unrestricted
+        Set-MailboxServer $CurrentExchangeServer -DatabaseCopyActivationDisabledAndMoveNow $false
         
         # Set Exchange Hub Transport Component to 'Active' after maintenance has been completed
-        Set-ServerComponentState $CurrentExchangeServer –Component HubTransport –State Active –Requester Maintenance
+        Set-ServerComponentState $CurrentExchangeServer -Component HubTransport -State Active -Requester Maintenance
         
         # Activate at least one Database on $CurrentExchangeServer
         $InActiveCopies = Get-MailboxDatabaseCopyStatus -Server $CurrentExchangeServer | Where {$_.Status -ne "Mounted"}
