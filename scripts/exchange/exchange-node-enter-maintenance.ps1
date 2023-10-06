@@ -39,7 +39,7 @@
 	$ExchangeFailoverTarget = $FailoverTarget
 	
     # Suspend Exchange Components
-    Set-ServerComponentState $CurrentExchangeServer –Component HubTransport –State Draining –Requester Maintenance
+    Set-ServerComponentState $CurrentExchangeServer -Component HubTransport -State Draining -Requester Maintenance
 	
     # Redirect any messages to be sent to $CurrentExchangeServer to $ExchangeFailoverTarget
     Redirect-Message -Server $CurrentExchangeServer -Target $ExchangeFailoverTarget -confirm:$false
@@ -48,24 +48,24 @@
 	Suspend-ClusterNode -Name $CurrentExchangeServer
 	
     # Disable Database Activation on $CurrentExchangeServer and move any active workloads
-	Set-MailboxServer $CurrentExchangeServer –DatabaseCopyActivationDisabledAndMoveNow $true
-	Set-MailboxServer $CurrentExchangeServer –DatabaseCopyAutoActivationPolicy Blocked
+	Set-MailboxServer $CurrentExchangeServer -DatabaseCopyActivationDisabledAndMoveNow $true
+	Set-MailboxServer $CurrentExchangeServer -DatabaseCopyAutoActivationPolicy Blocked
 	Move-ActiveMailboxDatabase -Server $CurrentExchangeServer
 	
     # Wait for all databases on $CurrentExchangeServer to be 'Mounted' elsewhere
 	Do
 	{
 	  $activecopies = Get-MailboxDatabaseCopyStatus -Server $CurrentExchangeServer | Where {$_.Status -eq "Mounted"}
-	} While ($activecopies.count –ne 0)
+	} While ($activecopies.count -ne 0)
 	
     # Wait for all databases now 'Mounted' elsewhere to be in a 'Healthy' State
 	Do
 	{
 	  $healthycopies = Get-MailboxDatabaseCopyStatus -Server $CurrentExchangeServer | Where {$_.Status -ne "Healthy"}
-	} While ($healthycopies.count –ne 0)
+	} While ($healthycopies.count -ne 0)
 	
     # Set all components of $CurrentExchangeServer to be 'InActive' for Maintenance
-    Set-ServerComponentState $CurrentExchangeServer –Component ServerWideOffline –State InActive –Requester Maintenance
+    Set-ServerComponentState $CurrentExchangeServer -Component ServerWideOffline -State InActive -Requester Maintenance
 
 # Cleanup Session
 
