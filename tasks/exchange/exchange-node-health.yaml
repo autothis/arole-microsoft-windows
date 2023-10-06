@@ -41,7 +41,7 @@
   ansible.builtin.fail:
     msg:
     - "One or more Exchange Node Services on {{ ansible_host }} are not Running"
-    - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
+    - "{{ exchange_node_health['service_health'] }}"
   when:
     - exchange_node_health['service_health']
        | map(attribute='Status')
@@ -62,7 +62,7 @@
   ansible.builtin.fail:
     msg:
     - "One or more Exchange Node Replication Checks on {{ ansible_host }} have failed"
-    - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
+    - "{{ exchange_node_health['replication_health'] }}"
   when:
     - exchange_node_health['replication_health']
        | map(attribute='Result')
