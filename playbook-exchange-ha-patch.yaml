@@ -32,9 +32,9 @@
         ansible_connection: local
       register: disable_real_server
 
-#    - name: Put Exchange Node into Maintenance Mode
-#      include_tasks: tasks/exchange/exchange-node-maintenance.yaml
-#
+    - name: Put Exchange Node into Maintenance Mode
+      include_tasks: tasks/exchange/exchange-node-enter-maintenance.yaml
+
 #    # I am thinking this wont be needed, i should do my change and verification in the maintenance mode task
 #    - name: Confirm Exchange Node Health
 #      include_tasks: tasks/exchange/exchange-node-health.yaml
@@ -71,16 +71,16 @@
 #
 #    - name: Confirm Exchange Node Health
 #      include_tasks: tasks/exchange/exchange-node-health.yaml
-
-    - name: Enable Real Server
-      ansible.builtin.script:
-        cmd: scripts/kemp/kemp_enable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
-        executable: /usr/bin/python3
-      delegate_to: localhost
-      vars:
-        kemp_api_url: "{{ lb_api_url }}"
-        kemp_api_username: "{{ kemp_username }}"
-        kemp_api_password: "{{ kemp_password }}"
-        kemp_real_server_ip: "{{ real_server_ip }}"
-        ansible_connection: local
-      register: enable_real_server
+#
+#    - name: Enable Real Server
+#      ansible.builtin.script:
+#        cmd: scripts/kemp/kemp_enable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+#        executable: /usr/bin/python3
+#      delegate_to: localhost
+#      vars:
+#        kemp_api_url: "{{ lb_api_url }}"
+#        kemp_api_username: "{{ kemp_username }}"
+#        kemp_api_password: "{{ kemp_password }}"
+#        kemp_real_server_ip: "{{ real_server_ip }}"
+#        ansible_connection: local
+#      register: enable_real_server
