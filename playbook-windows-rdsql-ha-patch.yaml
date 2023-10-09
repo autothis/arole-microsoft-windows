@@ -32,6 +32,10 @@
 #      SQL:
 #        For this play to work, the WinRM user will need permissions in SQL.
 #
+#  Notes:
+#    - Powershell Module 'SQLServer' needs to be available on each SQL Server.
+#    - Dot Net 4.7.2 needed to be installed on the SQL Servers for the 'SQLServer' Powershell Mdoule to work.
+#
 #  Known Issues:
 #    1: The 'win_updates' Ansible Module has some known issues where it hangs and times out.
 #       Sometimes restarting the play and/or rebooting the inventory host fixes the issue, but not always.
@@ -44,6 +48,7 @@
 #         reject_updates:
 #           - KB2267602
 #           - '.*Defender.*'
+
 - name: Microsoft RD SQL Availability Group Server Patching (HA)
   hosts: all
   vars:
