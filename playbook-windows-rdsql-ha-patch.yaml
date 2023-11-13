@@ -77,7 +77,7 @@
     - name: Is Failover Required for Current SQL AG Replica Node
       include_tasks: tasks/sql/windows-sql-ag-failover-check.yaml
 
-    - name: Is Failover Current SQL AG Replica Node if Required
+    - name: Failover Current SQL AG Replica Node if Required
       include_tasks: tasks/sql/windows-sql-ag-failover-node.yaml
       when: sql_current_replica['failover_required'] | trim == 'True'
 

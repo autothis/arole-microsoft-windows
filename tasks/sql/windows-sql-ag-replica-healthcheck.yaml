@@ -4,6 +4,7 @@
 
 - name: Check to see if Availability Group Replica Node is Healthy
   ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-check.ps1"
+  delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
   register: sql_replica_node_health
 
 - name: Parse 'sql_replica_node_health' as JSON and set fact
