@@ -25,7 +25,8 @@
 - name: Failover Windows Failover Cluster
   ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-cluster.ps1 -FailoverNode {{ sql_current_replica['failover_to_node'] }} -Action {{ failover_cluster_action }}"
   register: sql_replica_windows_failover_cluster
-  when: sql_current_replica['failover_required'] | trim == "True" and (sql_replica_notactive.stdout | from_json)['failover_required'] | trim == "True" or failover_cluster_action == "resume"
+  #when: sql_current_replica['failover_required'] | trim == "True" and (sql_replica_notactive.stdout | from_json)['failover_required'] | trim == "True" or failover_cluster_action == "resume"
+  when: (sql_current_replica['failover_required'] | trim == "True" and (sql_replica_notactive.stdout | from_json)['failover_required'] | trim == "True") or failover_cluster_action == "resume"
 
 - name: Fail Ansible Play if SQL Failover and Pause Fails
   fail:
