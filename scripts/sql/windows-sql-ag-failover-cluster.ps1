@@ -10,11 +10,6 @@ Param
 # Initalise Variables
   $CurrentHost = (hostname).tostring()
 
-# Test Variables
-
-  write-output $CurrentHost.gettype()
-  write-output $FailoverNode.gettype()
-
 # Pause or Resume Failover Cluster Node
   If ($Action -eq "pause") {
       # Pause Failover Cluster Node
