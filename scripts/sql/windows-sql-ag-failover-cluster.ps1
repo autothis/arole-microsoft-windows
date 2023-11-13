@@ -13,7 +13,7 @@ Param
 # Pause or Resume Failover Cluster Node
   If ($Action -eq "pause") {
       # Pause Failover Cluster Node
-      Suspend-ClusterNode -Name $CurrentHost -Target $FailoverNode -Drain
+      Suspend-ClusterNode -Name $CurrentHost -TargetNode ($FailoverNode).tostring() -Drain
 
       # Failover Status
       $FailoverStatus = Get-ClusterGroup
