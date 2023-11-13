@@ -78,6 +78,8 @@
       include_tasks: tasks/sql/windows-sql-ag-failover-check.yaml
 
     - name: Failover Current SQL AG Replica Node if Required
+      vars:
+        failover_cluster_action: "pause"
       include_tasks: tasks/sql/windows-sql-ag-failover-node.yaml
       when: sql_current_replica['failover_required'] | trim == 'True'
 
@@ -115,7 +117,13 @@
       vars:
         data_movement_action: "resume"
       include_tasks: tasks/sql/windows-sql-ag-data-movement.yaml
-    
+
+    - name: Failover Current SQL AG Replica Node if Required
+      vars:
+        failover_cluster_action: "resume"
+      include_tasks: tasks/sql/windows-sql-ag-failover-node.yaml
+      when: sql_current_replica['failover_required'] | trim == 'True'
+
     - name: Confirm AG Health
       include_tasks: tasks/sql/windows-sql-ag-cluster-healthcheck.yaml
 
