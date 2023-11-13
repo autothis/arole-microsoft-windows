@@ -12,14 +12,14 @@ Param
 
 # Test Variables
 
-  write-output $CurrentHost
-  write-output $FailoverNode
+  write-output $CurrentHost.gettype()
+  write-output $FailoverNode.gettype()
 
 # Pause or Resume Failover Cluster Node
   If ($Action -eq "pause") {
       # Pause Failover Cluster Node
       #Suspend-ClusterNode -Name $CurrentHost -Target $FailoverNode -Drain
-      Suspend-ClusterNode -Name $CurrentHost -Target "DC4-RDS-SQL02" -Drain
+      Suspend-ClusterNode -Name $CurrentHost -Target $FailoverNode -Drain
 
       # Failover Status
       $FailoverStatus = Get-ClusterGroup
