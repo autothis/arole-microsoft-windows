@@ -1,10 +1,10 @@
 Param
 (
   [Parameter(Mandatory)]
-  [string[]]$FailoverNode,
+  [string]$FailoverNode,
 
   [Parameter(Mandatory)]
-  [string[]]$Action
+  [string]$Action
 )
 
 # Initalise Variables
