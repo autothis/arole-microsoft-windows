@@ -12,9 +12,9 @@ Param
 
 # Test Variables
 
-  write-ouput $CurrentHost
-  write-ouput $FailoverNode
-  write-ouput ($FailoverNode).tostring()
+  write-output $CurrentHost
+  write-output $FailoverNode
+  write-output ($FailoverNode).tostring()
 
 # Pause or Resume Failover Cluster Node
   If ($Action -eq "pause") {
