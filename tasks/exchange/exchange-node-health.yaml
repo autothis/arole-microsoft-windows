@@ -41,7 +41,7 @@
   ansible.builtin.fail:
     msg:
     - "One or more Exchange Node Services on {{ ansible_host }} are not Running"
-    - "{{ exchange_node_health['service_health'] | map(attribute='Status') | select('equalto', 'ServiceNotRunning') }}"
+    - "{{ exchange_node_health['service_health'] }}"
   when:
     - exchange_node_health['service_health']
        | map(attribute='Status')
@@ -62,7 +62,7 @@
   ansible.builtin.fail:
     msg:
     - "One or more Exchange Node Replication Checks on {{ ansible_host }} have failed"
-    - "{{ exchange_node_health['replication_health'] | map(attribute='Result') | reject('equalto', 'Passed') }}"
+    - "{{ exchange_node_health['replication_health'] }}"
   when:
     - exchange_node_health['replication_health']
        | map(attribute='Result')
@@ -134,7 +134,6 @@
        | map(attribute='Status')
        | difference(['Mounted', 'Healthy'])
        | length == 0
-    - exchange_node_health_gather_only != 'yes'
 
 - name: Fail Ansible Play if any Exchange Database Copies are not Healthy (Mounted or Healthy).
   ansible.builtin.fail:
@@ -157,7 +156,6 @@
        | select('equalto', 'Healthy')
        | length == exchange_node_health['mailbox_database_copy_status']
        | length
-    - exchange_node_health_gather_only != 'yes'
 
 - name: Fail Ansible Play if any Exchange Database Content Indexes are not Healthy.
   ansible.builtin.fail:
@@ -180,7 +178,6 @@
        | map(attribute='CopyQueueLength')
        | select('le', exchange_copy_queue_limit | int)
        | length > 0
-    - exchange_node_health_gather_only != 'yes'
 
 - name: "Fail Ansible Play if any Exchange Node Database Copy Queue Lengths are over {{ exchange_copy_queue_limit }}."
   ansible.builtin.fail:
@@ -202,7 +199,6 @@
        | map(attribute='ReplayqueueLength')
        | select('le', exchange_replay_queue_limit | int)
        | length > 0
-    - exchange_node_health_gather_only != 'yes'
 
 - name: "Fail Ansible Play if any Exchange Node Database Copy Replay Queue Lengths are over {{ exchange_replay_queue_limit }}."
   ansible.builtin.fail:

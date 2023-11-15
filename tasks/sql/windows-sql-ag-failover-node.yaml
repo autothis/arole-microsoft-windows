@@ -7,6 +7,7 @@
   ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-node.ps1 -Instance {{ item['InstanceName'] }} -FailoverNode {{ sql_current_replica['failover_to_node'] }} -AvailabilityGroup {{ item['Name'] }}"
   with_items: "{{ sql_current_replica['sql_availability_groups'] }}"
   delegate_to: "{{ sql_current_replica['failover_to_node_fqdn'] }}"
+  when: failover_cluster_action == "pause"
 
 - name: Check to see if Replica has been Failed Over
   ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-check.ps1"
@@ -15,19 +16,38 @@
   until: (sql_replica_notactive.stdout | from_json)['failover_required'] | trim == "True"
   retries: 20
   delay: 30
+  when: failover_cluster_action == "pause"
 
 - name: SQL Replica Failover Status
   ansible.builtin.debug:
     msg: "{{ sql_replica_notactive.stdout }}"
+  when: failover_cluster_action == "pause"
 
-- name: Failover Windows Failover Cluster
-  ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-cluster.ps1"
+- name: Temporary Debug
+  ansible.builtin.debug:
+    msg: 
+    - "{{ sql_current_replica['failover_required'] | default('False') }}"
+    - "{{ (sql_replica_notactive.stdout | default('{}') | from_json | default({}))['failover_required'] | default('False') }}"
+    - "{{ failover_cluster_action }}"
+
+- name: Pause or Resume Windows Failover Cluster Node
+  ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-cluster.ps1 -FailoverNode {{ sql_current_replica['failover_to_node'] }} -Action {{ failover_cluster_action }}"
   register: sql_replica_windows_failover_cluster
-  when: sql_current_replica['failover_required'] | trim == "True" and (sql_replica_notactive.stdout | from_json)['failover_required'] | trim == "True"
+  when: (
+    (sql_current_replica['failover_required'] | default('False') | trim == "True") and
+    ((sql_replica_notactive.stdout | default('{}') | from_json | default({}))['failover_required'] | default('False') | trim == "True")
+    ) or (failover_cluster_action == "resume")
 
-- name: Fail Ansible Play if SQL Failover Fails
+- name: Fail Ansible Play if SQL Failover and Pause Fails
   fail:
     msg:
     - "SQL Replica Windows Failover Cluster Failover From {{ ansible_host }} has Failed."
     - "{{ sql_replica_windows_failover_cluster.stdout }}"
-  when: sql_replica_windows_failover_cluster.stdout | trim != "True" and sql_current_replica['failover_required'] | trim == "True"
+  when: sql_replica_windows_failover_cluster.stdout | trim != "True" and sql_current_replica['failover_required'] | trim == "True" and failover_cluster_action == "pause"
+
+- name: Fail Ansible Play if Windows Failover Cluster Resume Fails
+  fail:
+    msg:
+    - "SQL Replica Windows Failover Cluster Node Resume for {{ ansible_host }} has Failed."
+    - "{{ sql_replica_windows_failover_cluster.stdout }}"
+  when: sql_replica_windows_failover_cluster.stdout | trim != "True" and failover_cluster_action == "resume"

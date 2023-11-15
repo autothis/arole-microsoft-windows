@@ -1,0 +1,30 @@
+---
+# This task will patch a Windows device as many times as is required to install all patches listed in the variabe "kbs_to_install".
+
+- name: Microsoft RD Broker Failover (If Required)
+  hosts: all
+  serial: 1
+  any_errors_fatal: true
+  vars:
+    ansible_user: "{{ winrm_username }}"
+    ansible_password: "{{ winrm_password }}"
+    ansible_port: 5986
+    ansible_connection: winrm
+    ansible_winrm_server_cert_validation: ignore
+  become: yes
+  become_method: runas
+  become_user: "{{ ansible_user }}"
+  tasks:
+    - name: If required Failover RD Broker Management Server
+      include_tasks: tasks/windows-rdbroker-failover.yaml
+
+    - name: Install all available Windows updates
+      include_tasks: tasks/windows-update-all.yaml
+
+    - name: If required, update VMTools
+      include_role:
+        name: AutoThis_VMware
+        tasks_from: vmware-update-tools.yaml
+
+    - name: Check Broker Health
+      include_tasks: tasks/windows-rdbroker-health.yaml

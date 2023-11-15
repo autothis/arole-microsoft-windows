@@ -1,5 +1,73 @@
 ---
-# WinRM account requires Exchange Permissions (Server Management or higher)
+# Requirements:
+#   Inventory Example with Variables:
+#     Inventory Group:
+#       "DC1 Exchange"
+#         "vm_vcenter: vcenter.yourdomain.com"
+#         "vm_datacenter: DC1"
+#         "lb_api_url: 'https://dc1-kemp01.yourdomain.com/accessv2'"
+#     Inventory Hosts:
+#       "DC1-EXCH01.yourdomain.com"
+#         "vm_name: DC1-EXCH01"
+#         "real_server_ip: 172.1.1.10"
+#         "exchange_ignore_365_components: True"
+#         "exchange_failover_target: DC1-EXCH02.yourdomain.com"
+#         "lb_ignore: False"
+#       "DC1-EXCH02.yourdomain.com"
+#         "vm_name: DC1-EXCH02"
+#         "real_server_ip: 172.1.1.11"
+#         "exchange_failover_target: DC1-EXCH01.yourdomain.com"
+#         "lb_ignore: False"
+#       "DC1-EXCHTEST.yourdomain.com"
+#         "vm_name: DC1-EXCHTEST"
+#         "lb_ignore: True"
+#         "exchange_failover_target: DC1-EXCH01.yourdomain.com"
+#
+#    Playbook Variables Examples:
+#      connection_port: 5986
+#      connection_type: winrm
+#      connection_transport: kerberos
+#      connection_cert_validation: ignore
+#      exchange_copy_queue_limit: 10
+#      exchange_replay_queue_limit: 10
+#
+#    Credentials Variables Examples:
+#      WinRM Credentials:
+#        # Notice the capitalised domain.
+#        winrm_username: winrmuser@YOURDOMAIN.COM
+#        winrm_password: insertpasswordhere
+#      vCenter Credentials:
+#        vm_vcenter_username" vcenter@yourdomain.com
+#        vm_vcenter_password: insertpasswordhere
+#      Kemp Credentials:
+#        kemp_username" kempuser@yourdomain.com
+#        kemp_password: insertpasswordhere
+#
+#    Optional Playbook Requirements:
+#      Kerberos:
+#        For Kerberos to work, you will need to create a '/etc/krb5.conf' file (see example-krb5.conf in Git Repo)
+#
+#  Notes:
+#    - WinRM account requires Exchange Permissions (Server Management or higher)
+#    - You can ignore the Kemp Real Server tasks by setting 'lb_ignore' to 'True'
+#    - Exchange Copy and Replay Queue limits are the threshold that while under, this playbook will consider the database healthy.
+#
+#  Known Issues:
+#    1: The 'win_updates' Ansible Module has some known issues where it hangs and times out.
+#       Sometimes restarting the play and/or rebooting the inventory host fixes the issue, but not always.
+#         ref: https://github.com/ansible-collections/ansible.windows/issues/516
+#
+#    2: I would like to put the Kemp Management into its own Ansible Role at some point.
+#       I have left the (theoretical) code there (commented out) for once that is done, but in the mean time it is just a script.
+#
+#    3: The 'win_updates' Ansible Module has been stuggling with some Windows Updates getting stuck in an update looks.
+#       This seems to be a common issue in Windows, specifically with Defender upates (this is not an issue with Ansible, but with Windows).
+#       You may find you need to exclude these updates from this play.
+#       You can exclude updated by KB or Description by passing the following variable to the Ansible play:
+#         reject_updates:
+#           - KB2267602
+#           - '.*Defender.*'
+
 - name: Microsoft Exchange Server Patching (HA)
   hosts: all
   vars:
@@ -16,26 +84,33 @@
     - name: Confirm Ansible can communicate with the hosts to be patched
       include_tasks: tasks/test-communication.yaml
 
-    - name: Confirm Exchange Health
+    - name: Confirm Exchange Node Health
       include_tasks: tasks/exchange/exchange-node-health.yaml
 
-#    - name: Confirm AG Replica Node Health
-#      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
-#
-#    - name: Confirm AG Database Health
-#      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
-#
-#    - name: Is Failover Required for Current SQL AG Replica Node
-#      include_tasks: tasks/windows-sql-ag-failover-check.yaml
-#
-#    - name: Is Failover Current SQL AG Replica Node if Required
-#      include_tasks: tasks/windows-sql-ag-failover-node.yaml
-#      when: sql_current_replica['failover_required'] | trim == 'True'
-#
-#    - name: Suspend SQL data movement
+    - name: Disable Real Server
+      ansible.builtin.script:
+        cmd: scripts/kemp/kemp_disable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+        executable: /usr/bin/python3
+      delegate_to: localhost
+      vars:
+        kemp_api_url: "{{ lb_api_url }}"
+        kemp_api_username: "{{ kemp_username }}"
+        kemp_api_password: "{{ kemp_password }}"
+        kemp_real_server_ip: "{{ real_server_ip }}"
+        ansible_connection: local
+      register: disable_real_server
+      when: lb_ignore != 'True'
+
+    - name: Put Exchange Node into Maintenance Mode
+      include_tasks: tasks/exchange/exchange-node-maintenance.yaml
+      vars:
+        exchange_maintenance_action: suspend
+
+#    # I am thinking this wont be needed, i should do my change and verification in the maintenance mode task
+#    - name: Confirm Exchange Node Health
+#      include_tasks: tasks/exchange/exchange-node-health.yaml
 #      vars:
-#        data_movement_action: "suspend"
-#      include_tasks: tasks/windows-sql-ag-data-movement.yaml
+#        exchange_node_health_gather_only: 'True'
 #
 #    - name: Install all available windows update
 #      include_tasks: tasks/windows-update-all.yaml
@@ -62,16 +137,25 @@
 #    - name: Confirm Ansible can communicate with the patched hosts
 #      include_tasks: tasks/test-communication.yaml
 #
-#    - name: Resume SQL data movement
+#########################
+#    - name: Take Exchange Node out of Maintenance Mode
+#      include_tasks: tasks/exchange/exchange-node-maintenance.yaml
 #      vars:
-#        data_movement_action: "resume"
-#      include_tasks: tasks/windows-sql-ag-data-movement.yaml
-#    
-#    - name: Confirm AG Health
-#      include_tasks: tasks/windows-sql-ag-cluster-healthcheck.yaml
+#        exchange_maintenance_action: Resume
 #
-#    - name: Confirm AG Replica Node Health
-#      include_tasks: tasks/windows-sql-ag-replica-healthcheck.yaml
+#    - name: Confirm Exchange Node Health
+#      include_tasks: tasks/exchange/exchange-node-health.yaml
 #
-#    - name: Confirm AG Database Health
-#      include_tasks: tasks/windows-sql-ag-database-healthcheck.yaml
+#    - name: Enable Real Server
+#      ansible.builtin.script:
+#        cmd: scripts/kemp/kemp_enable_realserver.py --realserverip "{{ kemp_real_server_ip }}" --kempapiurl "{{ kemp_api_url }}" --kempusername "{{ kemp_api_username }}" --kemppassword "{{ kemp_api_password }}"
+#        executable: /usr/bin/python3
+#      delegate_to: localhost
+#      vars:
+#        kemp_api_url: "{{ lb_api_url }}"
+#        kemp_api_username: "{{ kemp_username }}"
+#        kemp_api_password: "{{ kemp_password }}"
+#        kemp_real_server_ip: "{{ real_server_ip }}"
+#        ansible_connection: local
+#      register: enable_real_server
+#      when: lb_ignore != 'True'

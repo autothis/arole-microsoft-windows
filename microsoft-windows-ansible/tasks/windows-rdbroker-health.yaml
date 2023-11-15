@@ -1,0 +1,21 @@
+---
+# This task will patch a Windows device as many times as is required to install all available updates"
+#
+# Required Variable:
+#  - {{ wsus }} : This can be one of three options:
+#      "default" - this lets the end point decide which update source to use
+#      "managed_server" - this lets you select wsus as the update source to use
+#      "windows_update" - this lets you select Windows public servers as the update source
+
+- name: Win Ping Test ("ping" winrm service)
+  win_ping:
+
+- name: Get current broker config
+  ansible.windows.win_shell: |
+    Get-RDConnectionBrokerHighAvailability | convertto-json
+  register: windows_rdbroker_health
+
+- name: Get current broker config
+  ansible.windows.win_shell: |
+    Get-RDConnectionBrokerHighAvailability | convertto-json
+  when: windows_rdbroker_health.stdout | trim == "True"
