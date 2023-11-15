@@ -36,7 +36,7 @@
   when: (
     (sql_current_replica['failover_required'] | default('False') | trim == "True") and
     ((sql_replica_notactive.stdout | default('{}') | from_json | default({}))['failover_required'] | default('False') | trim == "True")
-  ) or (failover_cluster_action == "resume")
+    ) or (failover_cluster_action == "resume")
 
 - name: Fail Ansible Play if SQL Failover and Pause Fails
   fail:
