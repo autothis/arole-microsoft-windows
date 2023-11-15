@@ -29,7 +29,6 @@
     - "{{ sql_current_replica['failover_required'] }}"
     - "{{ (sql_replica_notactive.stdout | from_json)['failover_required'] }}"
     - "{{ failover_cluster_action }}"
-  when: failover_cluster_action == "pause"
 
 - name: Failover Windows Failover Cluster
   ansible.builtin.script: "scripts/sql/windows-sql-ag-failover-cluster.ps1 -FailoverNode {{ sql_current_replica['failover_to_node'] }} -Action {{ failover_cluster_action }}"
